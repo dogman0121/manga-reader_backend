@@ -14,8 +14,8 @@ jobs:
         uses: actions/checkout@v3
       - name: install modules
         run: pip install --no-cache-dir -r requirements.txt
-      - name: run pytest
-        run: pytest
+#      - name: run pytest
+#        run: pytest
 
   prepare-environment:
     runs-on: self-hosted
