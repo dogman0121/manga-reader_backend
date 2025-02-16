@@ -23,9 +23,9 @@ def create_app(config):
     cors.init_app(app)
 
     from app.user import bp as user_bp
-    app.register_blueprint(user_bp)
+    app.register_blueprint(user_bp, url_prefix='/api/user')
 
     from app.person import bp as person_bp
-    app.register_blueprint(person_bp)
+    app.register_blueprint(person_bp, url_prefix='/api/person')
 
     return app
