@@ -1,0 +1,40 @@
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: python
+        uses: actions/setup-python@v5
+      - name: checkout repo
+        uses: actions/checkout@v3
+      - name: install modules
+        run: pip install --no-cache-dir -r requirements.txt
+      - name: run pytest
+        run: pytest
+
+  prepare-environment:
+    runs-on: self-hosted
+    needs: test
+    steps:
+      - name: Stop and remove containers, networks
+        run: docker-compose down
+      - name: Remove unused data
+        run: docker system prune -a -f
+
+  deploy:
+    name: deploy
+    runs-on: self-hosted
+
+    needs: prepare-environment
+
+    steps:
+    - name: deploy-container
+      run: |
+        EXPORT SECRET_KEY=${{ manga-reader.SECRET_KEY }}
+        EXPORT SECRET_KEY=${{ manga-reader.DATABASE_URI }}
+        docker-compose up -d
