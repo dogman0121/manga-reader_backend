@@ -33,6 +33,8 @@ jobs:
     needs: prepare-environment
 
     steps:
+    - name: checkout repo
+      uses: actions/checkout@v3
     - name: deploy-container
       run: |
         EXPORT SECRET_KEY=${{ secrets.SECRET_KEY }}
