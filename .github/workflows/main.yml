@@ -36,7 +36,8 @@ jobs:
     - name: checkout repo
       uses: actions/checkout@v3
     - name: deploy-container
+      env:
+        - SECRET_KEY: ${{ secrets.SECRET_KEY }}
+        - DATABASE_URI: ${{ secrets.DATABASE_URI }}
       run: |
-        export SECRET_KEY="${{ secrets.SECRET_KEY }}"
-        export DATABASE_URI="${{ secrets.DATABASE_URI }}"
         docker compose up -d
