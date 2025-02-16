@@ -35,6 +35,6 @@ jobs:
     steps:
     - name: deploy-container
       run: |
-        EXPORT SECRET_KEY=${{ manga-reader.SECRET_KEY }}
-        EXPORT SECRET_KEY=${{ manga-reader.DATABASE_URI }}
+        EXPORT SECRET_KEY=${{ secrets.SECRET_KEY }}
+        EXPORT SECRET_KEY=${{ secrets.DATABASE_URI }}
         docker-compose up -d
