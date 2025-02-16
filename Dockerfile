@@ -1,4 +1,4 @@
-FROM python:3.10-light
+FROM python:3.9-slim-bullseye
 
 RUN pip install --no-cache-dir -r requirements.txt
 
