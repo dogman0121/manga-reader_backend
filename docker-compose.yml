@@ -5,6 +5,5 @@ services:
     restart: always
     ports:
       - "8000:8000"
-    environment:
-      - SECRET_KEY=${SECRET_KEY}
-      - DATABASE_URI=${DATABASE_URI}
+    env_file:
+      - /home/ivan/projects/manga-reader/.env
