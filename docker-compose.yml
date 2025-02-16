@@ -6,5 +6,5 @@ services:
     ports:
       - 8000:8000
     environment:
-      - SECRET_KEY=SECRET_KEY
-      - DATABASE_URI=DATABASE_URI
+      - SECRET_KEY=${SECRET_KEY}
+      - DATABASE_URI=${DATABASE_URI}
