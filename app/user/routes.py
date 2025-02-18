@@ -53,7 +53,7 @@ def register_user():
     send_registration_mail(login, email, password)
 
     return jsonify(
-        msg="Registration successful",
+        msg="Email sent",
     )
 
 @bp.route("/verify", methods=["POST"])
