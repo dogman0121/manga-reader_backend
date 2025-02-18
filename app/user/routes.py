@@ -71,7 +71,10 @@ def verify_registration():
     user = User(login=user_info["login"], email=user_info["email"], password=user_info["password"])
     user.add()
 
-    return jsonify(msg="Verification successful")
+    return jsonify(
+        access_token=create_access_token(identity=user.id),
+        refresh_token=create_refresh_token(identity=user.id),
+    )
 
 
 @bp.route('/login', methods=['POST'])
