@@ -4,10 +4,10 @@ from flask_jwt_extended import (
     create_refresh_token,
     get_jwt_identity,
     jwt_required
-
 )
 from app.user import bp
 from app.user.models import User
+from app.email import send_registration_mail
 
 
 @bp.route('/<int:user_id>', methods=['GET'])
@@ -50,13 +50,28 @@ def register_user():
     if User.get_by_email(email):
         return jsonify({"msg": "Email already taken"})
 
-    user = User(login=login, email=email, password=password)
-    user.add()
+    send_registration_mail(login, email, password)
 
     return jsonify(
-        access_token=create_access_token(identity=user.id),
-        refresh_token=create_refresh_token(identity=user.id),
+        msg="Registration successful",
     )
+
+@bp.route("/verify", methods=["POST"])
+def verify_registration():
+    if "t" not in request.args:
+        return jsonify({"msg": "Token missing"})
+
+    token = request.args["t"]
+
+    user_info = User.verify_registration_token(token)
+
+    if user_info is None:
+        return jsonify({"msg": "Invalid token"})
+
+    user = User(login=user_info["login"], email=user_info["email"], password=user_info["password"])
+    user.add()
+
+    return jsonify(msg="Verification successful")
 
 
 @bp.route('/login', methods=['POST'])

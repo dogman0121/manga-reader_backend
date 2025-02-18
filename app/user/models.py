@@ -1,8 +1,10 @@
+from flask import current_app
 from app import db
 from sqlalchemy import Table, ForeignKey
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
-
+import jwt
+from time import time
 
 oauth = Table(
     'oauth',
@@ -53,6 +55,36 @@ class User(db.Model):
 
     def check_password(self, password):
         return check_password_hash(self.password, password)
+
+    def get_recovery_token(self):
+        return jwt.encode({
+            'id': self.id,
+            'exp': time() + 600
+        }, current_app.config["SECRET_KEY"], algorithm='HS256')
+
+    @staticmethod
+    def verify_recovery_token(token):
+        try:
+            user_id = jwt.decode(token, current_app.config["SECRET_KEY"], algorithms=["HS256"])["id"]
+            return User.query.get(user_id)
+        except Exception:
+            return None
+
+    @staticmethod
+    def get_registration_token(login, email, password):
+        return jwt.encode({
+            'login': login,
+            'email': email,
+            'password': password,
+            'exp': time() + 600
+        }, current_app.config["SECRET_KEY"], algorithm='HS256')
+
+    @staticmethod
+    def verify_registration_token(token):
+        try:
+            return jwt.decode(token, current_app.config["SECRET_KEY"], algorithms=['HS256'])
+        except Exception:
+            return
 
     def to_dict(self):
         return {
