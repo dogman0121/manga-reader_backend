@@ -7,7 +7,7 @@ from flask_jwt_extended import (
 )
 from app.user import bp
 from app.user.models import User
-from app.email import send_registration_mail
+from app.email import send_registration_verification_mail, send_password_recovery_mail
 
 
 @bp.route('/<int:user_id>', methods=['GET'])
@@ -50,7 +50,7 @@ def register_user():
     if User.get_by_email(email):
         return jsonify({"msg": "Email already taken"})
 
-    send_registration_mail(login, email, password)
+    send_registration_verification_mail(login, email, password)
 
     return jsonify(
         msg="Email sent",
@@ -58,10 +58,10 @@ def register_user():
 
 @bp.route("/verify", methods=["POST"])
 def verify_registration():
-    if "t" not in request.args:
+    if "token" not in request.json:
         return jsonify({"msg": "Token missing"})
 
-    token = request.args["t"]
+    token = request.json["token"]
 
     user_info = User.verify_registration_token(token)
 
@@ -102,3 +102,45 @@ def refresh_user():
     access_token = create_access_token(identity=identity)
     refresh_token = create_refresh_token(identity=identity)
     return jsonify(access_token=access_token, refresh_token=refresh_token)
+
+@bp.route("/forgot", methods=["POST"])
+def forgot_user():
+    if "email" not in request.json:
+        return jsonify({"msg": "Email missing"})
+
+    email = request.json["email"]
+
+    user = User.get_by_email(email)
+
+    if user is None:
+        return jsonify({"msg": "User does not exist"})
+
+    send_password_recovery_mail(user.id, email)
+
+    return jsonify(
+        msg="Email sent",
+    )
+
+@bp.route("/recovery", methods=["POST"])
+def recover_user():
+    if "token" not in request.json:
+        return jsonify({"msg": "Token missing"})
+
+    if "password" not in request.json:
+        return jsonify({"msg": "Password missing"})
+
+    token = request.json["token"]
+    password = request.json["password"]
+
+    user = User.verify_recovery_token(token)
+
+    if user is None:
+        return jsonify({"msg": "Invalid token"})
+
+    user.set_password(password)
+    user.update()
+
+    return jsonify(
+        access_token=create_access_token(identity=user.id),
+        refresh_token=create_refresh_token(identity=user.id),
+    )

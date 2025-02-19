@@ -19,7 +19,7 @@ def send_async_email(app, msg):
 
 
 def send_password_recovery_mail(user_id, email):
-    token = User.get_token(user_id).get_recovery_token()
+    token = User.get_by_id(user_id).get_recovery_token()
     send_email("Восстановление пароля",
                sender=current_app.config["MAIL_DEFAULT_SENDER"],
                recipients=[email],
@@ -27,7 +27,7 @@ def send_password_recovery_mail(user_id, email):
                html=render_template("email/recovery_password.html", token=token)
                )
 
-def send_registration_mail(login, email, password):
+def send_registration_verification_mail(login, email, password):
     token = User.get_registration_token(login, email, password)
     send_email("Подтверждение почты",
         sender=current_app.config["MAIL_DEFAULT_SENDER"],
