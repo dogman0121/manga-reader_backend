@@ -1,6 +1,7 @@
 from flask import current_app
 from app import db
-from sqlalchemy import Table, ForeignKey
+from sqlalchemy import Table, ForeignKey, Column, String, Integer, DateTime, Text
+from sqlalchemy.orm import mapped_column, Mapped
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 import jwt
@@ -9,20 +10,20 @@ from time import time
 oauth = Table(
     'oauth',
     db.metadata,
-    db.Column("user_id", db.Integer, ForeignKey("user.id"), nullable=False),
-    db.Column("oauth_type", db.String(20), nullable=False),
-    db.Column("oauth_id", db.String(150), nullable=False),
+    Column("user_id", Integer, ForeignKey("user.id"), nullable=False),
+    Column("oauth_type", String(20), nullable=False),
+    Column("oauth_id", Text, nullable=False),
 )
 
 class User(db.Model):
     __tablename__ = "user"
 
-    id = db.Column(db.Integer, primary_key=True)
-    login = db.Column(db.String(40), unique=True, nullable=False)
-    email = db.Column(db.String(120), unique=True, nullable=False)
-    password = db.Column(db.String(80), nullable=False)
-    role = db.Column(db.Integer, nullable=False, default=1)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    login: Mapped[str] = mapped_column(String(64), unique=True, nullable=False)
+    email: Mapped[str] = mapped_column(String(320), unique=True, nullable=False)
+    password: Mapped[str] = db.Column(Text, nullable=False)
+    role: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
 
     @staticmethod
@@ -38,9 +39,9 @@ class User(db.Model):
         return User.query.filter_by(email=email).scalar()
 
     def __init__(self, login, email, password):
-        self.login = login
-        self.email = email
-        self.password = generate_password_hash(password)
+        self.set_login(login)
+        self.set_email(email)
+        self.set_password(password)
 
     def add(self):
         db.session.add(self)
@@ -53,11 +54,42 @@ class User(db.Model):
         db.session.delete(self)
         db.session.commit()
 
+    ###### Setting credentials ######
+
+    @staticmethod
+    def validate_login(login):
+        return len(login) <= 64
+
+    @staticmethod
+    def validate_email(email):
+        return len(email) <= 320
+
+    @staticmethod
+    def validate_password(password):
+        return len(password) >= 8
+
+    def set_login(self, login):
+        if User.validate_login(login):
+            self.login = login
+        else:
+            raise Exception('login must be shorter than 64 characters')
+
+    def set_email(self, email):
+        if User.validate_email(email):
+            self.email = email
+        else:
+            raise Exception('email must be shorter than 320 characters')
+
     def set_password(self, password):
         self.password = generate_password_hash(password)
 
+
     def check_password(self, password):
         return check_password_hash(self.password, password)
+
+    ################################
+
+    ###### Getting and verifying tokens ######
 
     def get_recovery_token(self):
         return jwt.encode({
@@ -88,6 +120,8 @@ class User(db.Model):
             return jwt.decode(token, current_app.config["SECRET_KEY"], algorithms=['HS256'])
         except Exception:
             return
+
+    ################################
 
     def to_dict(self):
         return {

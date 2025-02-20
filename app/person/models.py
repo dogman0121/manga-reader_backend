@@ -1,22 +1,23 @@
 from app import db
-from sqlalchemy import Table, ForeignKey, and_
+from sqlalchemy import Table, ForeignKey, and_, Column, Integer, String, DateTime
+from sqlalchemy.orm import mapped_column, Mapped, relationship
 from datetime import datetime
 
 subscriber = Table(
     'subscriber',
     db.metadata,
-    db.Column('person_id', db.Integer, ForeignKey('person.id')),
-    db.Column('user_id', db.Integer, ForeignKey('user.id')),
+    Column('person_id', Integer, ForeignKey('person.id')),
+    Column('user_id', Integer, ForeignKey('user.id')),
 )
 
 class Person(db.Model):
     __tablename__ = "person"
 
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(40), nullable=False)
-    creator_id = db.Column(db.Integer, ForeignKey("user.id"), nullable=False)
-    creator = db.relationship("User", foreign_keys=creator_id)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    name: Mapped[str] = mapped_column(String(40), nullable=False)
+    creator_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"), nullable=False)
+    creator: Mapped["User"] = relationship("User", foreign_keys=creator_id)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
     @staticmethod
     def get_by_name(name):

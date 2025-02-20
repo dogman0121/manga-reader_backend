@@ -50,6 +50,15 @@ def register_user():
     if User.get_by_email(email):
         return jsonify({"msg": "Email already taken"})
 
+    if not User.validate_login(login):
+        return jsonify({"msg": "Invalid login"})
+
+    if not User.validate_email(email):
+        return jsonify({"msg": "Invalid email"})
+
+    if not User.validate_password(password):
+        return jsonify({"msg": "Invalid password"})
+
     send_registration_verification_mail(login, email, password)
 
     return jsonify(
@@ -64,11 +73,17 @@ def verify_registration():
     token = request.json["token"]
 
     user_info = User.verify_registration_token(token)
-
     if user_info is None:
         return jsonify({"msg": "Invalid token"})
 
-    user = User(login=user_info["login"], email=user_info["email"], password=user_info["password"])
+    login = user_info["login"]
+    email = user_info["email"]
+    password = user_info["password"]
+
+    if User.get_by_login(login) or User.get_by_email(email):
+        return jsonify({"msg": "Token already used"})
+
+    user = User(login=login, email=email, password=password)
     user.add()
 
     return jsonify(
@@ -103,6 +118,7 @@ def refresh_user():
     refresh_token = create_refresh_token(identity=identity)
     return jsonify(access_token=access_token, refresh_token=refresh_token)
 
+
 @bp.route("/forgot", methods=["POST"])
 def forgot_user():
     if "email" not in request.json:
@@ -121,6 +137,7 @@ def forgot_user():
         msg="Email sent",
     )
 
+
 @bp.route("/recovery", methods=["POST"])
 def recover_user():
     if "token" not in request.json:
@@ -136,6 +153,9 @@ def recover_user():
 
     if user is None:
         return jsonify({"msg": "Invalid token"})
+
+    if not User.validate_password(password):
+        return jsonify({"msg": "Invalid password"})
 
     user.set_password(password)
     user.update()
