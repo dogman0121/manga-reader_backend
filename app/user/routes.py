@@ -160,7 +160,4 @@ def recover_user():
     user.set_password(password)
     user.update()
 
-    return jsonify(
-        access_token=create_access_token(identity=user.id),
-        refresh_token=create_refresh_token(identity=user.id),
-    )
+    return jsonify(msg="Password updated")
