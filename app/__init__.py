@@ -28,4 +28,7 @@ def create_app(config):
     from app.person import bp as person_bp
     app.register_blueprint(person_bp, url_prefix='/api/person')
 
+    from app.search import bp as search_bp
+    app.register_blueprint(search_bp, url_prefix='/api/search')
+
     return app
