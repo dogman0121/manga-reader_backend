@@ -10,11 +10,11 @@ from app.user.models import User
 from app.email import send_registration_verification_mail, send_password_recovery_mail
 
 
-@bp.route('/<int:user_id>', methods=['GET'])
+@bp.route('/api/user/<int:user_id>', methods=['GET'])
 def get_user(user_id: int):
     return jsonify(User.get_by_id(user_id))
 
-@bp.route('/<int:user_id>', methods=['PUT'])
+@bp.route('/api/user/<int:user_id>', methods=['PUT'])
 @jwt_required()
 def edit_user(user_id: int):
     user = User.get_by_id(int(get_jwt_identity()))
@@ -31,14 +31,14 @@ def edit_user(user_id: int):
     user.update()
     return jsonify(user.to_dict())
 
-@bp.route('/me', methods=['GET'])
+@bp.route('/api/user/me', methods=['GET'])
 @jwt_required()
 def get_current_user():
     user = get_jwt_identity()
     return jsonify(User.get_by_id(user).to_dict())
 
 
-@bp.route('/register', methods=['POST'])
+@bp.route('/api/user/register', methods=['POST'])
 def register_user():
     login = request.json['login']
     email = request.json['email']
@@ -65,7 +65,7 @@ def register_user():
         msg="Email sent",
     )
 
-@bp.route("/verify", methods=["POST"])
+@bp.route("/api/user/verify", methods=["POST"])
 def verify_registration():
     if "token" not in request.json:
         return jsonify({"msg": "Token missing"})
@@ -92,7 +92,7 @@ def verify_registration():
     )
 
 
-@bp.route('/login', methods=['POST'])
+@bp.route('/api/user/login', methods=['POST'])
 def login_user():
     login = request.json['login']
     password = request.json['password']
@@ -110,7 +110,7 @@ def login_user():
     )
 
 
-@bp.route("/refresh", methods=["POST"])
+@bp.route("/api/user/refresh", methods=["POST"])
 @jwt_required(refresh=True)
 def refresh_user():
     identity = get_jwt_identity()
@@ -119,7 +119,7 @@ def refresh_user():
     return jsonify(access_token=access_token, refresh_token=refresh_token)
 
 
-@bp.route("/forgot", methods=["POST"])
+@bp.route("/api/user/forgot", methods=["POST"])
 def forgot_user():
     if "email" not in request.json:
         return jsonify({"msg": "Email missing"})
@@ -138,7 +138,7 @@ def forgot_user():
     )
 
 
-@bp.route("/recovery", methods=["POST"])
+@bp.route("/api/user/recovery", methods=["POST"])
 def recover_user():
     if "token" not in request.json:
         return jsonify({"msg": "Token missing"})

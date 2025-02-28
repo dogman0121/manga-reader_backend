@@ -7,7 +7,7 @@ from app.person import bp
 from app.person.models import Person
 
 
-@bp.route('/create', methods=['POST'])
+@bp.route('/api/person/create', methods=['POST'])
 @jwt_required()
 def add_person():
     name = request.json['name']
@@ -20,7 +20,7 @@ def add_person():
 
     return jsonify(person.to_dict())
 
-@bp.route('/<int:person_id>', methods=['GET'])
+@bp.route('/api/person/<int:person_id>', methods=['GET'])
 def get_person(person_id):
     person = Person.get(person_id)
 
@@ -29,17 +29,17 @@ def get_person(person_id):
 
     return jsonify(person.to_dict())
 
-@bp.route('/<int:person_id>', methods=['PUT'])
+@bp.route('/api/person/<int:person_id>', methods=['PUT'])
 @jwt_required()
 def update_person():
     pass
 
-@bp.route('/<int:person_id>/subscribe', methods=['GET'])
+@bp.route('/api/person/<int:person_id>/subscribe', methods=['GET'])
 @jwt_required()
 def subscribe_person(person_id):
     pass
 
-@bp.route('/<int:person_id>/unsubscribe', methods=['GET'])
+@bp.route('/api/person/<int:person_id>/unsubscribe', methods=['GET'])
 @jwt_required()
 def unsubscribe_person(person_id):
     pass

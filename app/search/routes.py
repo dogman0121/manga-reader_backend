@@ -2,7 +2,7 @@ from flask import jsonify
 
 from app.search import bp
 
-@bp.route('/', methods=['GET'], slash_redirect=False)
+@bp.route('/api/search', methods=['GET'])
 def search():
     return jsonify(
         {

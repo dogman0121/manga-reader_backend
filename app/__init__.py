@@ -23,12 +23,12 @@ def create_app(config):
     cors.init_app(app)
 
     from app.user import bp as user_bp
-    app.register_blueprint(user_bp, url_prefix='/api/user')
+    app.register_blueprint(user_bp)
 
     from app.person import bp as person_bp
-    app.register_blueprint(person_bp, url_prefix='/api/person')
+    app.register_blueprint(person_bp)
 
     from app.search import bp as search_bp
-    app.register_blueprint(search_bp, url_prefix='/api/search')
+    app.register_blueprint(search_bp)
 
     return app
