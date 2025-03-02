@@ -7,11 +7,11 @@ def search():
     return jsonify(
         [{
             "id": 1,
-            "status": {
+            "type": {
                 "id": 1,
                 "name": "манга"
             },
-            "type": {
+            "status": {
                 "id": 1,
                 "name": "выпускается"
             },
@@ -39,11 +39,11 @@ def search():
         },
         {
             "id": 2,
-            "status": {
+            "type": {
                 "id": 1,
                 "name": "манга"
             },
-            "type": {
+            "status": {
                 "id": 1,
                 "name": "выпускается"
             },
