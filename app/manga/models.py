@@ -97,6 +97,6 @@ class Manga(Base):
     @staticmethod
     def search(query):
         return db.session.execute(
-            Select(Manga).filter(func.lower(Manga.name_russian).like(f"%{query.lower()}%"))
+            Select(Manga).filter(func.lower(Manga.name).like(f"%{query.lower()}%"))
         ).scalars().all()
 
