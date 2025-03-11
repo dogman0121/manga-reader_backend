@@ -1,7 +1,9 @@
 from app import db
+from app.models import Base
 from sqlalchemy import Table, ForeignKey, and_, Column, Integer, String, DateTime
 from sqlalchemy.orm import mapped_column, Mapped, relationship
 from datetime import datetime
+from app.user.models import User
 
 subscriber = Table(
     'subscriber',
@@ -10,13 +12,13 @@ subscriber = Table(
     Column('user_id', Integer, ForeignKey('user.id')),
 )
 
-class Person(db.Model):
+class Person(Base):
     __tablename__ = "person"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     name: Mapped[str] = mapped_column(String(40), nullable=False)
     creator_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"), nullable=False)
-    creator: Mapped["User"] = relationship("User", foreign_keys=creator_id)
+    creator: Mapped["User"] = relationship("User")
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
     @staticmethod
@@ -26,17 +28,6 @@ class Person(db.Model):
     @staticmethod
     def get(person_id):
         return db.session.get(Person, person_id)
-
-    def add(self):
-        db.session.add(self)
-        db.session.commit()
-
-    def update(self):
-        db.session.commit()
-
-    def delete(self):
-        db.session.delete(self)
-        db.session.commit()
 
     def add_subscriber(self, user_id):
         db.session.execute(subscriber.insert().values(person_id=self.id, user_id=user_id))

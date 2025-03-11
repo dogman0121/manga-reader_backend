@@ -4,6 +4,7 @@ from flask_jwt_extended import (
     jwt_required
 )
 from app.person import bp
+
 from app.person.models import Person
 
 

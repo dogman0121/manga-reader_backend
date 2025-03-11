@@ -1,5 +1,6 @@
 from flask import current_app
 from app import db
+from app.models import Base
 from sqlalchemy import Table, ForeignKey, Column, String, Integer, DateTime, Text
 from sqlalchemy.orm import mapped_column, Mapped
 from datetime import datetime
@@ -15,7 +16,7 @@ oauth = Table(
     Column("oauth_id", Text, nullable=False),
 )
 
-class User(db.Model):
+class User(Base):
     __tablename__ = "user"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
@@ -25,6 +26,10 @@ class User(db.Model):
     role: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
+    def __init__(self, login, email, password):
+        self.set_login(login)
+        self.set_email(email)
+        self.set_password(password)
 
     @staticmethod
     def get_by_id(user_id):
@@ -37,11 +42,6 @@ class User(db.Model):
     @staticmethod
     def get_by_email(email):
         return User.query.filter_by(email=email).scalar()
-
-    def __init__(self, login, email, password):
-        self.set_login(login)
-        self.set_email(email)
-        self.set_password(password)
 
     def add(self):
         db.session.add(self)

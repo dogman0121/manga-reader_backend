@@ -1,9 +1,16 @@
-from flask import jsonify
+from flask import jsonify, request
 
 from app.search import bp
+from app.manga.models import Manga
 
 @bp.route('/api/search', methods=['GET'])
 def search():
+    query = request.args.get('query')
+    section = request.args.get('section')
+
+    if section == "manga":
+        return jsonify([ i.to_dict() for i in Manga.search(query)])
+
     return jsonify(
         [{
             "id": 1,
@@ -57,15 +64,15 @@ def search():
             "genres": [
                 {
                     "id": 1,
-                    "name": "Драки"
+                    "name": "драки"
                 },
                 {
                     "id": 2,
-                    "name": "Седзе"
+                    "name": "дедзе"
                 },
                 {
                     "id": 3,
-                    "name": "Романтика"
+                    "name": "домантика"
                 }
             ]
         },

@@ -31,4 +31,7 @@ def create_app(config):
     from app.search import bp as search_bp
     app.register_blueprint(search_bp)
 
+    from app.manga import bp as manga_bp
+    app.register_blueprint(manga_bp)
+
     return app
