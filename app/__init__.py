@@ -13,6 +13,7 @@ cors = CORS()
 
 
 def create_app(config):
+    print("aboba")
     app = Flask(__name__)
     app.config.from_object(config)
 
