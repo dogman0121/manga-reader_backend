@@ -4,11 +4,6 @@ COPY . .
 
 RUN pip install --no-cache-dir -r requirements.txt
 
-
-RUN echo "MAIL_PORT is $MAIL_PORT"
-
-RUN flask db upgrade
-
 EXPOSE 8000
 
 CMD ["gunicorn", "--bind", "0.0.0.0:8000", "manage:app"]
