@@ -1,7 +1,7 @@
 services:
   migrations:
     extends:
-      service: base
+      service: manga-reader
     command: flask db upgrade
 
   manga-reader:
