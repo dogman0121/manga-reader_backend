@@ -1,2 +1,9 @@
-flask db upgrade
-gunicorn -b :8000 --access-logfile - --error-logfile - manage:app
+while true; do
+    flask db upgrade
+    if [[ "$?" == "0" ]]; then
+        break
+    fi
+    echo Deploy command failed, retrying in 5 secs...
+    sleep 5
+done
+exec gunicorn --bind 0.0.0.0:8000 manage:app
