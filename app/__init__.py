@@ -13,7 +13,6 @@ cors = CORS()
 
 
 def create_app(config):
-    print("aboba")
     app = Flask(__name__)
     app.config.from_object(config)
 
@@ -22,6 +21,11 @@ def create_app(config):
     mail.init_app(app)
     jwt.init_app(app)
     cors.init_app(app)
+
+    @app.route('/api')
+    def api():
+        print("sdfsdfd")
+        return "dfgdfg", 200
 
     from app.user import bp as user_bp
     app.register_blueprint(user_bp)
