@@ -1,11 +1,13 @@
 FROM python:3.9-slim-bullseye
 
-COPY . .
-
+COPY requirements.txt requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 RUN pip install gunicorn
 
-RUN chmod +x boot.sh
+COPY app app
+COPY migrations migrations
+COPY manage.py config.py boot.sh ./
+RUN chmod a+x boot.sh
 
 EXPOSE 8000
 
