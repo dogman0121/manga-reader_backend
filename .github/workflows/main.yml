@@ -30,7 +30,7 @@ jobs:
     name: deploy
     runs-on: self-hosted
 
-    needs: prepare-environment
+    needs: test
 
     steps:
     - name: checkout repo
