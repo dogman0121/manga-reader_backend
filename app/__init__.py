@@ -22,21 +22,16 @@ def create_app(config):
     jwt.init_app(app)
     cors.init_app(app)
 
-    @app.route('/api')
-    def api():
-        print("sdfsdfd")
-        return "dfgdfg", 200
-
     from app.user import bp as user_bp
-    app.register_blueprint(user_bp)
+    app.register_blueprint(user_bp, url_prefix='/')
 
     from app.person import bp as person_bp
-    app.register_blueprint(person_bp)
+    app.register_blueprint(person_bp, url_prefix='/')
 
     from app.search import bp as search_bp
-    app.register_blueprint(search_bp)
+    app.register_blueprint(search_bp, url_prefix='/')
 
     from app.manga import bp as manga_bp
-    app.register_blueprint(manga_bp)
+    app.register_blueprint(manga_bp, url_prefix='/')
 
     return app
