@@ -9,4 +9,4 @@ RUN chmod a+x boot.sh
 
 EXPOSE 8000
 
-CMD ["./boot.sh"]
+ENTRYPOINT ["./boot.sh"]
