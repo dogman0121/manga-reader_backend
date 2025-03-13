@@ -119,7 +119,7 @@ class Manga(Base):
     @hybrid_property
     def posters(self):
         posters = []
-        for poster in os.listdir(f"app/static/manga/{self.id}/posters"):
+        for poster in os.listdir(f"/app/static/manga/{self.id}/posters"):
             posters.append(url_for("static", filename=f"manga/{self.id}/posters/{poster}"))
         return posters
 

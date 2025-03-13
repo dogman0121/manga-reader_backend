@@ -62,17 +62,17 @@ def add_manga():
 
     manga.add()
 
-    os.mkdir(os.path.join(os.getcwd(), "app\static\manga\{}".format(manga.id)))
-    os.mkdir(os.path.join(os.getcwd(), "app\static\manga\{}\posters".format(manga.id)))
+    os.mkdir(os.path.join(os.getcwd(), "/app/static/manga/{}".format(manga.id)), exist_ok=True)
+    os.mkdir(os.path.join(os.getcwd(), "/app/static/manga/{}/posters".format(manga.id)), exist_ok=True)
 
     if request.files.get("main-poster") is not None:
-        request.files.get("main-poster").save(f"app/static/manga/{manga.id}/main-poster.jpg")
+        request.files.get("main-poster").save(f"/app/static/manga/{manga.id}/main-poster.jpg")
 
     if request.files.get("wrapper") is not None:
         request.files.get("wrapper").save(f"app/static/manga/{manga.id}/wrapper.jpg")
 
     for file in request.files.getlist("posters"):
-        file.save(f"app/static/manga/{manga.id}/posters/{secure_filename(file.filename)}")
+        file.save(f"/app/static/manga/{manga.id}/posters/{secure_filename(file.filename)}")
 
     # print(manga.id)
 
