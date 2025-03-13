@@ -25,7 +25,7 @@ def add_manga():
     if request.form.get("name-translations") is not None:
         name_translations = json.loads(request.form.get("name-translations"))
     else:
-        name_translations = []
+        name_translations = {}
 
     description = request.form.get("description")
 
@@ -47,7 +47,7 @@ def add_manga():
 
     manga = Manga(
         name=name,
-        name_translations=[NameTranslation(lang=i["lang"], name=i["name"]) for i in name_translations],
+        name_translations=[NameTranslation(lang=key, name=value) for key, value in name_translations],
         description=description,
         status_id=status_id,
         type_id=type_id,
