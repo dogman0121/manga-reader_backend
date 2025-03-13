@@ -7,3 +7,5 @@ services:
       - "8000:8000"
     env_file:
       - /home/ivan/projects/manga-reader/.env
+    volumes:
+      - /var/storage/uploads/:/app/static/

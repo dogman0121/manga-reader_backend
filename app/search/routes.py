@@ -1,5 +1,6 @@
 from flask import jsonify, request
 
+from app.person.models import Person
 from app.search import bp
 from app.manga.models import Manga
 
@@ -10,6 +11,9 @@ def search():
 
     if section == "manga":
         return jsonify([ i.to_dict() for i in Manga.search(query)])
+
+    if section == "person":
+        return jsonify([i.to_dict() for i in Person.search(query)])
 
     return jsonify(
         [{

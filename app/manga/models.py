@@ -1,8 +1,16 @@
+import os
+
+from sqlalchemy.ext.hybrid import hybrid_property
+
+from flask import url_for
+
 from app import db
 from app.models import Base
 from datetime import datetime
 from sqlalchemy import Integer, Text, ForeignKey, DateTime, Column, Table, String, Select, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from typing import Optional
 
 
 manga_name_translations = Table(
@@ -43,18 +51,26 @@ manga_genres = Table(
 
 class Genre(Base):
     __tablename__ = "genre"
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(20), nullable=False)
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    name: Mapped[str] = mapped_column(String(20), nullable=False)
 
 class Type(Base):
     __tablename__ = "type"
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(20), nullable=False)
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    name: Mapped[str] = mapped_column(String(20), nullable=False)
 
 class Status(Base):
     __tablename__ = "status"
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(20), nullable=False)
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    name: Mapped[str] = mapped_column(String(20), nullable=False)
+
+
+class Adult(Base):
+    __tablename__ = "adult"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    name: Mapped[str] = mapped_column(String(20), nullable=False)
 
 class NameTranslation(Base):
     __tablename__ = "name_translation"
@@ -67,18 +83,19 @@ class NameTranslation(Base):
 class Manga(Base):
     __tablename__ = 'manga'
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True, nullable=False, unique=True)
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True, nullable=False, unique=True)
     name: Mapped[str] = mapped_column(Text, nullable=False)
     name_translations: Mapped[list["NameTranslation"]] = relationship()
-    description: Mapped[str] = mapped_column(Text, nullable=False)
-    type_id: Mapped[int] = mapped_column(ForeignKey("type.id"), nullable=True)
+    description: Mapped[str] = mapped_column(Text, nullable=True)
+    type_id: Mapped[Optional[int]] = mapped_column(ForeignKey("type.id"), nullable=True)
     type: Mapped["Type"] = relationship()
-    status_id: Mapped[int] = mapped_column(ForeignKey("status.id"), nullable=True)
+    status_id: Mapped[Optional[int]] = mapped_column(ForeignKey("status.id"), nullable=True)
     status: Mapped["Status"] = relationship()
-    poster: Mapped[int] = mapped_column(nullable=True)
-    year: Mapped[int] = mapped_column(nullable=True)
-    views: Mapped[int] = mapped_column(default=0)
-    adult: Mapped[int] = mapped_column()
+    poster: Mapped[Optional[int]] = mapped_column(nullable=True)
+    year: Mapped[Optional[int]] = mapped_column(nullable=True)
+    views: Mapped[Optional[int]] = mapped_column(default=0)
+    adult_id: Mapped[Optional[int]] = mapped_column(ForeignKey("adult.id"), nullable=True)
+    adult: Mapped["Adult"] = relationship()
     genres: Mapped[list["Genre"]] = relationship(secondary="manga_genre")
     authors: Mapped[list["Person"]] = relationship(secondary="manga_author")
     artists: Mapped[list["Person"]] = relationship(secondary="manga_artist")
@@ -89,6 +106,22 @@ class Manga(Base):
     # translators: Mapped[list["Team"]] = relationship(uselist=True, secondary="manga_translator",
     #                                                  back_populates="mangas")
     created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda x: datetime.utcnow())
+    verified: Mapped[bool] = mapped_column(default=False)
+
+    @hybrid_property
+    def main_poster(self):
+        return url_for("static", filename=f"manga/{self.id}/main-poster.jpg")
+
+    @hybrid_property
+    def wrapper(self):
+        return url_for("static", filename=f"manga/{self.id}/wrapper.jpg")
+
+    @hybrid_property
+    def posters(self):
+        posters = []
+        for poster in os.listdir(f"app/static/manga/{self.id}/posters"):
+            posters.append(url_for("static", filename=f"manga/{self.id}/posters/{poster}"))
+        return posters
 
     @staticmethod
     def get(manga_id):
@@ -99,4 +132,12 @@ class Manga(Base):
         return db.session.execute(
             Select(Manga).filter(func.lower(Manga.name).like(f"%{query.lower()}%"))
         ).scalars().all()
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "main_poster": self.main_poster,
+            "wrapper": self.wrapper,
+        }
 

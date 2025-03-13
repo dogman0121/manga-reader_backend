@@ -1,6 +1,6 @@
 from app import db
 from app.models import Base
-from sqlalchemy import Table, ForeignKey, and_, Column, Integer, String, DateTime
+from sqlalchemy import Table, ForeignKey, and_, Column, Integer, String, DateTime, Select, func
 from sqlalchemy.orm import mapped_column, Mapped, relationship
 from datetime import datetime
 from app.user.models import User
@@ -15,7 +15,7 @@ subscriber = Table(
 class Person(Base):
     __tablename__ = "person"
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(String(40), nullable=False)
     creator_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"), nullable=False)
     creator: Mapped["User"] = relationship("User")
@@ -28,6 +28,12 @@ class Person(Base):
     @staticmethod
     def get(person_id):
         return db.session.get(Person, person_id)
+
+    @staticmethod
+    def search(query):
+        return db.session.execute(
+            Select(Person).filter(func.lower(Person.name).like(f"%{query.lower()}%"))
+        ).scalars().all()
 
     def add_subscriber(self, user_id):
         db.session.execute(subscriber.insert().values(person_id=self.id, user_id=user_id))
