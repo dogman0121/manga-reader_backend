@@ -10,16 +10,9 @@ from datetime import datetime
 from sqlalchemy import Integer, Text, ForeignKey, DateTime, Column, Table, String, Select, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from app.manga.utils import get_external_path
+
 from typing import Optional
-
-
-manga_name_translations = Table(
-    "manga_name_translation",
-    db.metadata,
-    Column("manga_id", Integer, db.ForeignKey("manga.id")),
-    Column("lang", String(5), nullable=False),
-    Column("name", Text, nullable=False),
-)
 
 manga_authors = Table(
     "manga_author",
@@ -73,12 +66,25 @@ class Adult(Base):
     name: Mapped[str] = mapped_column(String(20), nullable=False)
 
 class NameTranslation(Base):
-    __tablename__ = "name_translation"
+    __tablename__ = "manga_name_translation"
 
     manga_id: Mapped[int] = mapped_column(Integer, ForeignKey("manga.id"), primary_key=True,
                                           nullable=False)
     lang: Mapped[str] = mapped_column(String(5), primary_key=True, nullable=False)
     name: Mapped[str] = mapped_column(Text, nullable=False)
+
+class Poster(Base):
+    __tablename__ = "manga_poster"
+
+    manga_id: Mapped[int] = mapped_column(ForeignKey("manga.id"))
+    filename: Mapped[str] = mapped_column(Text, primary_key=True, nullable=False)
+    order: Mapped[int] = mapped_column(Integer, nullable=False)
+
+class Background(Base):
+    __tablename__ = "manga_background"
+
+    manga_id: Mapped[int] = mapped_column(ForeignKey("manga.id"))
+    filename: Mapped[str] = mapped_column(Text, primary_key=True, nullable=False)
 
 class Manga(Base):
     __tablename__ = 'manga'
@@ -91,7 +97,12 @@ class Manga(Base):
     type: Mapped["Type"] = relationship()
     status_id: Mapped[Optional[int]] = mapped_column(ForeignKey("status.id"), nullable=True)
     status: Mapped["Status"] = relationship()
-    poster: Mapped[Optional[int]] = mapped_column(nullable=True)
+    main_poster_number: Mapped[Optional[int]] = mapped_column(nullable=True)
+    main_poster: Mapped["Poster"] = relationship(
+        primaryjoin="and_(Manga.main_poster_number == Poster.order, Manga.id == Poster.manga_id)",
+    )
+    posters: Mapped[list["Poster"]] = relationship(viewonly=True)
+    background: Mapped["Background"] = relationship()
     year: Mapped[Optional[int]] = mapped_column(nullable=True)
     views: Mapped[Optional[int]] = mapped_column(default=0)
     adult_id: Mapped[Optional[int]] = mapped_column(ForeignKey("adult.id"), nullable=True)
@@ -108,21 +119,6 @@ class Manga(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda x: datetime.utcnow())
     verified: Mapped[bool] = mapped_column(default=False)
 
-    @hybrid_property
-    def main_poster(self):
-        return url_for("static", filename=f"manga/{self.id}/main-poster.jpg")
-
-    @hybrid_property
-    def wrapper(self):
-        return url_for("static", filename=f"manga/{self.id}/wrapper.jpg")
-
-    @hybrid_property
-    def posters(self):
-        posters = []
-        for poster in os.listdir(f"/app/static/manga/{self.id}/posters"):
-            posters.append(url_for("static", filename=f"manga/{self.id}/posters/{poster}"))
-        return posters
-
     @staticmethod
     def get(manga_id):
         return db.session.get(Manga, manga_id)
@@ -137,7 +133,14 @@ class Manga(Base):
         return {
             "id": self.id,
             "name": self.name,
-            "main_poster": self.main_poster,
-            "wrapper": self.wrapper,
+            "main_poster":
+                get_external_path(f"/uploads/manga/{self.id}/{self.main_poster.filename}")
+                if self.main_poster else "",
+            "background":
+                get_external_path(f"/uploads/manga/{self.id}/{self.background.filename}")
+                if self.background else "",
+            "posters": [
+                get_external_path(f"/uploads/manga/{self.id}/{poster.filename}") for poster in self.posters
+            ],
         }
 
