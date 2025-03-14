@@ -16,9 +16,9 @@ class UserAdmin(ModelView):
 
 
 class TitleAdmin(ModelView):
-    column_list = ('id', 'type_id', 'status_id', 'year', 'views', 'description', 'year', 'views', 'adult'
+    column_list = ('id', 'name', 'type_id', 'status_id', 'year', 'views', 'description', 'year', 'views', 'adult'
                    'creator_id', 'created_at')
-    form_columns = ['type_id', 'status_id', 'year', 'description', 'year', 'views', 'adult']
+    form_columns = ['name', 'type_id', 'status_id', 'year', 'description', 'year', 'views', 'adult']
 
 
 class NameTranslationAdmin(ModelView):
