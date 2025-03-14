@@ -3,4 +3,4 @@
 **/__pycache__/
 .env
 instance/
-app/static/media
+app/static/
