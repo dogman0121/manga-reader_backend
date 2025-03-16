@@ -8,7 +8,6 @@ class Base(db.Model):
         db.session.commit()
 
     def update(self):
-        self.verified = True
         db.session.commit()
 
     def delete(self):

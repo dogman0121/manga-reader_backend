@@ -73,6 +73,12 @@ class NameTranslation(Base):
     lang: Mapped[str] = mapped_column(String(5), primary_key=True, nullable=False)
     name: Mapped[str] = mapped_column(Text, nullable=False)
 
+    def to_dict(self):
+        return {
+            "lang": self.lang,
+            "name": self.name,
+        }
+
 class Poster(Base):
     __tablename__ = "manga_poster"
 
@@ -98,10 +104,10 @@ class Manga(Base):
     status_id: Mapped[Optional[int]] = mapped_column(ForeignKey("status.id"), nullable=True)
     status: Mapped["Status"] = relationship()
     main_poster_number: Mapped[Optional[int]] = mapped_column(nullable=True)
-    main_poster: Mapped["Poster"] = relationship(
+    main_poster: Mapped["Poster"] = relationship("Poster",
         primaryjoin="and_(Manga.main_poster_number == Poster.order, Manga.id == Poster.manga_id)",
     )
-    posters: Mapped[list["Poster"]] = relationship(viewonly=True)
+    posters: Mapped[list["Poster"]] = relationship()
     background: Mapped["Background"] = relationship()
     year: Mapped[Optional[int]] = mapped_column(nullable=True)
     views: Mapped[Optional[int]] = mapped_column(default=0)
@@ -133,9 +139,10 @@ class Manga(Base):
         return {
             "id": self.id,
             "name": self.name,
+            "name_translations": [i.to_dict() for i in self.name_translations],
             "main_poster":
                 get_external_path(f"/uploads/manga/{self.id}/{self.main_poster.filename}")
-                if self.main_poster else "",
+                if self.main_poster_number else "",
             "background":
                 get_external_path(f"/uploads/manga/{self.id}/{self.background.filename}")
                 if self.background else "",

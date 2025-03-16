@@ -41,7 +41,7 @@ def update_data(manga: Manga) -> None:
     publishers = [Person.get(int(i)) for i in request.form.getlist("publisher")]
 
     manga.name = name
-    manga.name_translations = [NameTranslation(lang, name) for lang, name in name_translations]
+    manga.name_translations = [NameTranslation(lang=lang, name=name) for lang, name in name_translations]
     manga.description = description
     manga.type = type
     manga.status = status
@@ -65,10 +65,12 @@ def update_media(manga: Manga) -> None:
         background_file.save(f"app/static/manga/{manga.id}/{background_filename}")
         manga.background = Background(filename=background_filename)
 
+    posters = []
     for order, file in enumerate(request.files.getlist("posters")):
         poster_filename = get_uuid4_filename() + ".jpg"
         file.save(f"app/static/manga/{manga.id}/{poster_filename}")
-        manga.posters.append(Poster(filename=poster_filename, order=order))
+        posters.append(Poster(filename=poster_filename, order=order))
+    manga.posters = posters
 
     if manga.posters:
         manga.main_poster_number = int(request.form.get("main-poster") or (len(manga.posters) - 1))
