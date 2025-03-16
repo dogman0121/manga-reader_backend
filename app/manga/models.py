@@ -141,13 +141,13 @@ class Manga(Base):
             "name": self.name,
             "name_translations": [i.to_dict() for i in self.name_translations],
             "main_poster":
-                get_external_path(f"/uploads/manga/{self.id}/{self.main_poster.filename}")
+                get_external_path(f"uploads/manga/{self.id}/{self.main_poster.filename}")
                 if self.main_poster_number else "",
             "background":
-                get_external_path(f"/uploads/manga/{self.id}/{self.background.filename}")
+                get_external_path(f"uploads/manga/{self.id}/{self.background.filename}")
                 if self.background else "",
             "posters": [
-                get_external_path(f"/uploads/manga/{self.id}/{poster.filename}") for poster in self.posters
+                get_external_path(f"uploads/manga/{self.id}/{poster.filename}") for poster in self.posters
             ],
         }
 

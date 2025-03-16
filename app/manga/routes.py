@@ -41,7 +41,7 @@ def update_data(manga: Manga) -> None:
     publishers = [Person.get(int(i)) for i in request.form.getlist("publisher")]
 
     manga.name = name
-    manga.name_translations = [NameTranslation(lang=lang, name=name) for lang, name in name_translations]
+    manga.name_translations = [NameTranslation(lang=lang, name=name) for lang, name in name_translations.items()]
     manga.description = description
     manga.type = type
     manga.status = status
