@@ -136,13 +136,16 @@ class Manga(Base):
         ).scalars().all()
 
     def to_dict(self):
+        print(self.main_poster)
+        print(self.main_poster_number)
+        print(self.posters)
         return {
             "id": self.id,
             "name": self.name,
             "name_translations": [i.to_dict() for i in self.name_translations],
             "main_poster":
                 get_external_path(f"uploads/manga/{self.id}/{self.main_poster.filename}")
-                if self.main_poster_number else "",
+                if self.main_poster else "",
             "background":
                 get_external_path(f"uploads/manga/{self.id}/{self.background.filename}")
                 if self.background else "",
