@@ -136,9 +136,6 @@ class Manga(Base):
         ).scalars().all()
 
     def to_dict(self):
-        print(self.main_poster)
-        print(self.main_poster_number)
-        print(self.posters)
         return {
             "id": self.id,
             "name": self.name,
