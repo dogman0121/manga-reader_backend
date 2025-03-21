@@ -169,6 +169,8 @@ class Manga(Base):
         if user.role == 4:
             return True
 
+        return False
+
     def get_permissions(self, user):
         if user is None:
             return {}

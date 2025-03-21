@@ -4,10 +4,9 @@ import os
 
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
-from app import db
 from app.user.models import User
 from app.manga import bp
-from app.manga.models import Manga, NameTranslation, Genre, Adult, Type, Status, Poster, Background
+from app.manga.models import Manga, NameTranslation, Genre, Adult, Type, Status, Poster
 from app.person.models import Person
 
 from app.manga.utils import get_uuid4_filename
@@ -112,9 +111,28 @@ def add_manga():
     manga.creator_id = get_jwt_identity()
 
     update_data(manga)
-
     update_media(manga)
 
     manga.add()
 
     return jsonify(manga.to_dict(User.get_by_id(get_jwt_identity()))), 201
+
+
+@bp.route("/api/manga/<int:manga_id>/edit", methods=["PUT"])
+@jwt_required()
+def edit_manga(manga_id: int) -> [str, int]:
+    manga = Manga.get(manga_id)
+    user = User.get_by_id(get_jwt_identity())
+
+    if manga is None:
+        return jsonify(msg="Not found"), 404
+
+    if not manga.can_edit(user=user):
+        return jsonify(msg="Not allowed"), 403
+
+    update_data(manga)
+    update_media(manga)
+
+    manga.update()
+
+    return jsonify(manga.to_dict(User.get_by_id(get_jwt_identity()))), 200
