@@ -48,15 +48,33 @@ class Genre(Base):
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(String(20), nullable=False)
 
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "name": self.name,
+        }
+
 class Type(Base):
     __tablename__ = "type"
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(String(20), nullable=False)
 
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "name": self.name,
+        }
+
 class Status(Base):
     __tablename__ = "status"
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(String(20), nullable=False)
+
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "name": self.name,
+        }
 
 
 class Adult(Base):
@@ -64,6 +82,12 @@ class Adult(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(String(20), nullable=False)
+
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "name": self.name,
+        }
 
 class NameTranslation(Base):
     __tablename__ = "manga_name_translation"
