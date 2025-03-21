@@ -82,7 +82,7 @@ class NameTranslation(Base):
 class Poster(Base):
     __tablename__ = "manga_poster"
 
-    manga_id: Mapped[int] = mapped_column(ForeignKey("manga.id"))
+    manga_id: Mapped[int] = mapped_column(ForeignKey("manga.id", ondelete="CASCADE"))
     filename: Mapped[str] = mapped_column(Text, primary_key=True, nullable=False)
     order: Mapped[int] = mapped_column(Integer, nullable=False)
 
@@ -135,19 +135,45 @@ class Manga(Base):
             Select(Manga).filter(func.lower(Manga.name).like(f"%{query.lower()}%"))
         ).scalars().all()
 
-    def to_dict(self):
+    def can_edit(self, user):
+        if user is None:
+            return False
+
+        if self.creator == user:
+            return True
+
+        if user.role == 4:
+            return True
+
+    def get_permissions(self, user):
+        if user is None:
+            return {}
+
+        return {
+            "edit": self.can_edit(user),
+        }
+
+    def to_dict(self, user=None):
         return {
             "id": self.id,
             "name": self.name,
+            "type": self.type.to_dict() if self.type else None,
+            "status": self.status.to_dict() if self.status else None,
+            "adult": self.adult.to_dict() if self.adult else None,
+            "year": self.year if self.year else None,
             "name_translations": [i.to_dict() for i in self.name_translations],
             "main_poster":
-                get_external_path(f"uploads/manga/{self.id}/{self.main_poster.filename}")
-                if self.main_poster else "",
+                self.main_poster.filename
+                if self.main_poster else None,
             "background":
-                get_external_path(f"uploads/manga/{self.id}/{self.background.filename}")
-                if self.background else "",
+                self.background.filename
+                if self.background else None,
             "posters": [
-                get_external_path(f"uploads/manga/{self.id}/{poster.filename}") for poster in self.posters
+                poster.filename for poster in self.posters
             ],
+            "authors": [author.to_dict() for author in self.authors],
+            "artists": [artist.to_dict() for artist in self.artists],
+            "publishers": [publisher.to_dict() for publisher in self.publishers],
+            "permissions": self.get_permissions(user),
         }
 
