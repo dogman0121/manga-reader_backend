@@ -81,7 +81,11 @@ def update_media(manga: Manga) -> None:
     manga.posters = posters_list
 
     if len(posters_list) > 0:
-        manga.main_poster_number = int(request.form.get("main_poster") or len(manga.posters)-1)
+        main_poster = request.form.get("main_poster")
+        if main_poster in posters_order:
+            manga.main_poster_number = posters_order.index(main_poster)
+        else:
+            manga.main_poster_number = len(posters_list)-1
 
 
 @bp.route('/api/manga/<int:manga_id>', methods=['GET'])
