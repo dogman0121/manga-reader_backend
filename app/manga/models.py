@@ -121,7 +121,7 @@ class Manga(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True, nullable=False, unique=True)
     name: Mapped[str] = mapped_column(Text, nullable=False)
-    name_translations: Mapped[list["NameTranslation"]] = relationship()
+    name_translations: Mapped[list["NameTranslation"]] = relationship(cascade="save-update, merge, delete, delete-orphan")
     description: Mapped[str] = mapped_column(Text, nullable=True)
     type_id: Mapped[Optional[int]] = mapped_column(ForeignKey("type.id"), nullable=True)
     type: Mapped["Type"] = relationship()
