@@ -8,6 +8,7 @@ from app import db
 from app.models import Base
 from datetime import datetime
 from sqlalchemy import Integer, Text, ForeignKey, DateTime, Column, Table, String, Select, func
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.manga.utils import get_external_path
@@ -106,15 +107,9 @@ class NameTranslation(Base):
 class Poster(Base):
     __tablename__ = "manga_poster"
 
-    manga_id: Mapped[int] = mapped_column(ForeignKey("manga.id", ondelete="CASCADE"))
-    filename: Mapped[str] = mapped_column(Text, primary_key=True, nullable=False)
-    order: Mapped[int] = mapped_column(Integer, nullable=False)
-
-class Background(Base):
-    __tablename__ = "manga_background"
-
-    manga_id: Mapped[int] = mapped_column(ForeignKey("manga.id"))
-    filename: Mapped[str] = mapped_column(Text, primary_key=True, nullable=False)
+    manga_id: Mapped[int] = mapped_column(ForeignKey("manga.id", ondelete="CASCADE"), primary_key=True)
+    filename: Mapped[str] = mapped_column(JSONB, nullable=False)
+    order: Mapped[int] = mapped_column(Integer, nullable=False, primary_key=True)
 
 class Manga(Base):
     __tablename__ = 'manga'
@@ -132,7 +127,7 @@ class Manga(Base):
         primaryjoin="and_(Manga.main_poster_number == Poster.order, Manga.id == Poster.manga_id)",
     )
     posters: Mapped[list["Poster"]] = relationship()
-    background: Mapped["Background"] = relationship()
+    background: Mapped[str] = mapped_column(nullable=True)
     year: Mapped[Optional[int]] = mapped_column(nullable=True)
     views: Mapped[Optional[int]] = mapped_column(default=0)
     adult_id: Mapped[Optional[int]] = mapped_column(ForeignKey("adult.id"), nullable=True)

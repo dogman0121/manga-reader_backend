@@ -11,6 +11,8 @@ from app.person.models import Person
 
 from app.manga.utils import get_uuid4_filename
 
+from PIL import Image
+
 def validate_manga():
     if not request.form.get("name"):
         return False, "Name is empty"
@@ -55,8 +57,21 @@ def update_data(manga: Manga) -> None:
     manga.artists = artists
     manga.publishers = publishers
 
+sizes = {
+    "thumbnail": (70, 100),
+    "small": (350, 500),
+    "medium": (700, 1000),
+    "large": (1400, 2100),
+}
+
+def create_upload_folder(manga_id) -> None:
+    if not os.path.exists(f'app/static/manga/{manga_id}'):
+        os.mkdir(f'app/static/manga/{manga_id}')
 
 def update_media(manga: Manga) -> None:
+    create_upload_folder(manga.id)
+
+    # Save posters
     if request.form.get("posters_order") is not None:
         posters_order = json.loads(request.form.get("posters_order"))
     else:
@@ -71,21 +86,41 @@ def update_media(manga: Manga) -> None:
             poster.order = posters_order.index(poster.filename)
             posters_list.append(poster)
         else:
-            os.remove("app/static/manga/" + poster.filename)
+            for filename in poster.filename.values():
+                if os.path.exists(f"app/static/manga/{manga.id}/" + filename):
+                    os.remove(f"app/static/manga/{manga.id}/" + filename)
 
     for new_poster in new_posters:
-        new_filename = get_uuid4_filename() + ".jpg"
-        new_poster.save("app/static/manga/" + new_filename)
-        posters_list.append(Poster(filename=new_filename, order=posters_order.index(new_poster.filename)))
+        identifier = get_uuid4_filename()
+        #####
+        source_img = Image.open(new_poster)
+        json_data = {"filename": identifier}
 
+        for name, size in sizes.items():
+            new_img = source_img.copy().convert("RGB")
+            new_img.thumbnail(size)
+            filename = identifier + "_" + name + ".jpg"
+            json_data[name] = filename
+            new_img.save(f"app/static/manga/{manga.id}/" + filename)
+        #####
+        posters_list.append(Poster(filename=json_data, order=posters_order.index(new_poster.filename)))
     manga.posters = posters_list
 
+    # Save main poster
     if len(posters_list) > 0:
         main_poster = request.form.get("main_poster")
         if main_poster in posters_order:
             manga.main_poster_number = posters_order.index(main_poster)
         else:
             manga.main_poster_number = len(posters_list)-1
+
+    # Save background image
+    background = request.form.get("background")
+    if background is not None:
+        filename = get_uuid4_filename()
+        background.save(f"app/static/manga/{manga.id}/" + filename + ".jpg")
+
+
 
 
 @bp.route('/api/manga/<int:manga_id>', methods=['GET'])
@@ -115,9 +150,10 @@ def add_manga():
     manga.creator_id = get_jwt_identity()
 
     update_data(manga)
-    update_media(manga)
-
     manga.add()
+
+    update_media(manga)
+    manga.update()
 
     return jsonify(manga.to_dict(User.get_by_id(get_jwt_identity()))), 201
 
