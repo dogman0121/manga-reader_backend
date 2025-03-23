@@ -82,8 +82,8 @@ def update_media(manga: Manga) -> None:
     posters_list = []
 
     for poster in manga.posters:
-        if poster.filename in posters_order:
-            poster.order = posters_order.index(poster.filename)
+        if poster.filename["filename"] in posters_order:
+            poster.order = posters_order.index(poster.filename["filename"])
             posters_list.append(poster)
         else:
             for filename in poster.filename.values():
@@ -91,6 +91,7 @@ def update_media(manga: Manga) -> None:
                     os.remove(f"app/static/manga/{manga.id}/" + filename)
 
     for new_poster in new_posters:
+        old_filename = os.path.splitext(new_poster.filename)[0]
         identifier = get_uuid4_filename()
         #####
         source_img = Image.open(new_poster)
@@ -103,7 +104,8 @@ def update_media(manga: Manga) -> None:
             json_data[name] = filename
             new_img.save(f"app/static/manga/{manga.id}/" + filename)
         #####
-        posters_list.append(Poster(filename=json_data, order=posters_order.index(new_poster.filename)))
+
+        posters_list.append(Poster(filename=json_data, order=posters_order.index(old_filename)))
     manga.posters = posters_list
 
     # Save main poster
