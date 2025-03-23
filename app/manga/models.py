@@ -111,6 +111,16 @@ class Poster(Base):
     filename: Mapped[str] = mapped_column(JSONB, nullable=False)
     order: Mapped[int] = mapped_column(Integer, nullable=False, primary_key=True)
 
+def get_poster_dict(manga_id: int, poster: Poster) -> dict:
+
+    return {
+        "filename": poster.filename["filename"],
+        "thumbnail": f"/uploads/manga/{manga_id}/{poster.filename['thumbnail']}",
+        "small": f"/uploads/manga/{manga_id}/{poster.filename['small']}",
+        "medium": f"/uploads/manga/{manga_id}/{poster.filename['medium']}",
+        "large": f"/uploads/manga/{manga_id}/{poster.filename['large']}",
+    }
+
 class Manga(Base):
     __tablename__ = 'manga'
 
@@ -184,7 +194,7 @@ class Manga(Base):
             "year": self.year if self.year else None,
             "name_translations": [i.to_dict() for i in self.name_translations],
             "main_poster":
-                self.main_poster.filename
+                get_poster_dict(self.id, self.main_poster)
                 if self.main_poster else None,
             "background":
                 self.background.filename
