@@ -136,7 +136,7 @@ class Manga(Base):
     main_poster: Mapped["Poster"] = relationship("Poster",
         primaryjoin="and_(Manga.main_poster_number == Poster.order, Manga.id == Poster.manga_id)",
     )
-    posters: Mapped[list["Poster"]] = relationship()
+    posters: Mapped[list["Poster"]] = relationship(cascade="save-update, merge, delete, delete-orphan")
     background: Mapped[str] = mapped_column(nullable=True)
     year: Mapped[Optional[int]] = mapped_column(nullable=True)
     views: Mapped[Optional[int]] = mapped_column(default=0)
@@ -200,7 +200,7 @@ class Manga(Base):
                 self.background.filename
                 if self.background else None,
             "posters": [
-                poster.filename for poster in self.posters
+                get_poster_dict(self.id, poster) for poster in self.posters
             ],
             "authors": [author.to_dict() for author in self.authors],
             "artists": [artist.to_dict() for artist in self.artists],
