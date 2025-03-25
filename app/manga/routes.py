@@ -137,7 +137,7 @@ def get_manga(manga_id):
     if manga is None:
         return jsonify(msg="Not found"), 404
 
-    return jsonify(manga.to_dict(user))
+    return jsonify(manga.to_dict(user=user, posters=True))
 
 
 @bp.route("/api/manga/add", methods=["POST"])
