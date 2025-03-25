@@ -60,10 +60,10 @@ def update_data(manga: Manga) -> None:
     manga.publishers = publishers
 
 sizes = {
-    "thumbnail": (70, 100),
-    "small": (350, 500),
-    "medium": (700, 1000),
-    "large": (1400, 2100),
+    "thumbnail": (80, 120),
+    "small": (400, 600),
+    "medium": (800, 1200),
+    "large": (1200, 1800),
 }
 
 def create_upload_folder(manga_id) -> None:

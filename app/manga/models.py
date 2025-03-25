@@ -108,7 +108,7 @@ class Poster(Base):
     __tablename__ = "manga_poster"
 
     uuid: Mapped[str] = mapped_column(primary_key=True)
-    manga_id: Mapped[int] = mapped_column(ForeignKey("manga.id", ondelete="CASCADE", onupdate="CASCADE"))
+    manga_id: Mapped[int] = mapped_column(ForeignKey("manga.id", ondelete="CASCADE", onupdate="CASCADE"), nullable=False)
     filenames: Mapped[str] = mapped_column(JSONB, nullable=False)
     order: Mapped[int] = mapped_column(Integer, nullable=False)
 
