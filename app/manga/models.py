@@ -184,7 +184,7 @@ class Manga(Base):
             "edit": self.can_edit(user),
         }
 
-    def to_dict(self, user=None):
+    def to_dict(self, user=None, posters=False):
         return {
             "id": self.id,
             "name": self.name,
@@ -201,7 +201,7 @@ class Manga(Base):
                 if self.background else None,
             "posters": [
                 get_poster_dict(self.id, poster) for poster in sorted(self.posters, key=lambda x: x.order)
-            ],
+            ] if posters else [],
             "authors": [author.to_dict() for author in self.authors],
             "artists": [artist.to_dict() for artist in self.artists],
             "publishers": [publisher.to_dict() for publisher in self.publishers],
