@@ -88,7 +88,7 @@ def update_media(manga: Manga) -> None:
             for filename in poster.filenames.values():
                 if os.path.exists(f"app/static/manga/{manga.id}/" + filename):
                     os.remove(f"app/static/manga/{manga.id}/" + filename)
-                manga.posters.remove(manga.posters.index(poster))
+                manga.posters.remove(poster)
 
     for new_poster in new_posters:
         old_filename = os.path.splitext(new_poster.filename)[0]
