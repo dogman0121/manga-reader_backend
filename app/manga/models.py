@@ -200,7 +200,7 @@ class Manga(Base):
                 self.background.filename
                 if self.background else None,
             "posters": [
-                get_poster_dict(self.id, poster) for poster in self.posters
+                get_poster_dict(self.id, poster) for poster in sorted(self.posters, key=lambda x: x.order)
             ],
             "authors": [author.to_dict() for author in self.authors],
             "artists": [artist.to_dict() for artist in self.artists],
