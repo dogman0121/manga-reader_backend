@@ -4,6 +4,8 @@ import os
 
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
+from app import db
+
 from app.user.models import User
 from app.manga import bp
 from app.manga.models import Manga, NameTranslation, Genre, Adult, Type, Status, Poster
@@ -79,23 +81,21 @@ def update_media(manga: Manga) -> None:
 
     new_posters = request.files.getlist("new_posters")
 
-    posters_list = []
-
     for poster in manga.posters:
-        if poster.filename["filename"] in posters_order:
-            poster.order = posters_order.index(poster.filename["filename"])
-            posters_list.append(poster)
+        if poster.uuid in posters_order:
+            poster.order = posters_order.index(poster.uuid)
         else:
-            for filename in poster.filename.values():
+            for filename in poster.filenames.values():
                 if os.path.exists(f"app/static/manga/{manga.id}/" + filename):
                     os.remove(f"app/static/manga/{manga.id}/" + filename)
+                manga.posters.remove(manga.posters.index(poster))
 
     for new_poster in new_posters:
         old_filename = os.path.splitext(new_poster.filename)[0]
         identifier = get_uuid4_filename()
         #####
         source_img = Image.open(new_poster)
-        json_data = {"filename": identifier}
+        json_data = {}
 
         for name, size in sizes.items():
             new_img = source_img.copy().convert("RGB")
@@ -105,16 +105,21 @@ def update_media(manga: Manga) -> None:
             new_img.save(f"app/static/manga/{manga.id}/" + filename)
         #####
 
-        posters_list.append(Poster(filename=json_data, order=posters_order.index(old_filename)))
-    manga.posters = posters_list
+        manga.posters.append(
+            Poster(
+                uuid=identifier,
+                filenames=json_data,
+                order=posters_order.index(old_filename)
+            )
+        )
 
     # Save main poster
-    if len(posters_list) > 0:
+    if len(manga.posters) > 0:
         main_poster = request.form.get("main_poster")
         if main_poster in posters_order:
             manga.main_poster_number = posters_order.index(main_poster)
         else:
-            manga.main_poster_number = len(posters_list)-1
+            manga.main_poster_number = len(manga.posters)-1
 
     # Save background image
     background = request.form.get("background")
@@ -177,4 +182,4 @@ def edit_manga(manga_id: int) -> [str, int]:
 
     manga.update()
 
-    return jsonify(manga.to_dict(User.get_by_id(get_jwt_identity()))), 200
+    return jsonify(manga.to_dict(user=User.get_by_id(get_jwt_identity()), posters=True)), 200

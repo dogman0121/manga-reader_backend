@@ -107,18 +107,19 @@ class NameTranslation(Base):
 class Poster(Base):
     __tablename__ = "manga_poster"
 
-    manga_id: Mapped[int] = mapped_column(ForeignKey("manga.id", ondelete="CASCADE"), primary_key=True)
-    filename: Mapped[str] = mapped_column(JSONB, nullable=False)
-    order: Mapped[int] = mapped_column(Integer, nullable=False, primary_key=True)
+    uuid: Mapped[str] = mapped_column(primary_key=True)
+    manga_id: Mapped[int] = mapped_column(ForeignKey("manga.id", ondelete="CASCADE", onupdate="CASCADE"))
+    filenames: Mapped[str] = mapped_column(JSONB, nullable=False)
+    order: Mapped[int] = mapped_column(Integer, nullable=False)
 
 def get_poster_dict(manga_id: int, poster: Poster) -> dict:
 
     return {
-        "filename": poster.filename["filename"],
-        "thumbnail": f"/uploads/manga/{manga_id}/{poster.filename['thumbnail']}",
-        "small": f"/uploads/manga/{manga_id}/{poster.filename['small']}",
-        "medium": f"/uploads/manga/{manga_id}/{poster.filename['medium']}",
-        "large": f"/uploads/manga/{manga_id}/{poster.filename['large']}",
+        "uuid": poster.uuid,
+        "thumbnail": f"/uploads/manga/{manga_id}/{poster.filenames['thumbnail']}",
+        "small": f"/uploads/manga/{manga_id}/{poster.filenames['small']}",
+        "medium": f"/uploads/manga/{manga_id}/{poster.filenames['medium']}",
+        "large": f"/uploads/manga/{manga_id}/{poster.filenames['large']}",
     }
 
 class Manga(Base):
