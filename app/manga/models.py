@@ -7,7 +7,7 @@ from flask import url_for
 from app import db
 from app.models import Base
 from datetime import datetime
-from sqlalchemy import Integer, Text, ForeignKey, DateTime, Column, Table, String, Select, func
+from sqlalchemy import Integer, Text, ForeignKey, DateTime, Column, Table, String, Select, func, desc
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -152,8 +152,9 @@ class Manga(Base):
     # chapters: Mapped[list["Chapter"]] = relationship(uselist=True, back_populates="manga")
     # translators: Mapped[list["Team"]] = relationship(uselist=True, secondary="manga_translator",
     #                                                  back_populates="mangas")
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda x: datetime.utcnow())
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda x: datetime.utcnow(), nullable=True)
     verified: Mapped[bool] = mapped_column(default=False)
+    comments: Mapped["Comment"] = relationship("Comment", secondary="manga_comment", back_populates="manga")
 
     @staticmethod
     def get(manga_id):

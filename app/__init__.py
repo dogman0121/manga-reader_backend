@@ -35,6 +35,9 @@ def create_app(config):
     from app.manga import bp as manga_bp
     app.register_blueprint(manga_bp)
 
+    from app.comment import bp as comment_bp
+    app.register_blueprint(comment_bp)
+
     from app.admin import admin
     admin.init_app(app)
 
