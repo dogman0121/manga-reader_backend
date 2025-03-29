@@ -50,7 +50,7 @@ def add_comment():
     parent_id = body.get("parent")
     manga_id = body.get("manga")
 
-    comment = Comment(text=text, user=user, root=root_id, parent=parent_id)
+    comment = Comment(text=text, creator=user, root_id=root_id, parent_id=parent_id)
 
     if manga_id:
         comment.add_for_manga(manga_id=manga_id)

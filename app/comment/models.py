@@ -1,27 +1,35 @@
 from app import db
 from app.models import Base
 
-from sqlalchemy import Integer, Text, ForeignKey, DateTime, Column, Table, String, Select, func, desc
+from sqlalchemy import Integer, Text, ForeignKey, DateTime, Column, Table, String, Select, func, asc
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.ext.hybrid import hybrid_property
 
 from datetime import datetime
 
 class Comment(Base):
-    page_size = 20
+    page_size = 8
 
     __tablename__ = "comment"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     text: Mapped[str] = mapped_column(Text, nullable=False)
-    user_id: Mapped[int] = mapped_column(ForeignKey('user.id'), nullable=False)
-    user: Mapped["User"] = relationship('User', backref='comments')
     root_id: Mapped[int] = mapped_column(ForeignKey("comment.id"), nullable=True)
     root: Mapped["Comment"] = relationship(primaryjoin="Comment.root_id == Comment.id")
     parent_id: Mapped[int] = mapped_column(ForeignKey("comment.id"), nullable=True)
     parent: Mapped["Comment"] = relationship(primaryjoin="Comment.parent_id == Comment.id")
+    creator_id: Mapped[int] = mapped_column(ForeignKey('user.id'), nullable=False)
+    creator: Mapped["User"] = relationship('User', backref='comments')
     created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda x: datetime.utcnow(), nullable=False)
     manga: Mapped["Manga"] = relationship("Manga", secondary="manga_comment", back_populates="comments")
+
+    @hybrid_property
+    def answers_count(self) -> int:
+        return db.session.execute(
+            Select(func.count(Comment.id))
+            .where(Comment.parent_id == self.id)
+        ).scalar()
 
     @staticmethod
     def get(comment_id: int) -> "Comment":
@@ -33,7 +41,7 @@ class Comment(Base):
             Select(Comment)
             .join(MangaComment)
             .filter_by(manga_id=manga_id)
-            .order_by(desc(Comment.created_at))
+            .order_by(asc(Comment.created_at))
             .limit(Comment.page_size)
             .offset((page - 1) * Comment.page_size)
         ).scalars().all()
@@ -43,7 +51,7 @@ class Comment(Base):
         return db.session.execute(
             Select(Comment)
             .filter_by(parent_id=comment_id)
-            .order_by(desc(Comment.created_at))
+            .order_by(asc(Comment.created_at))
             .limit(Comment.page_size)
             .offset((page - 1) * Comment.page_size)
         ).scalars().all()
@@ -53,7 +61,7 @@ class Comment(Base):
         return db.session.execute(
             Select(Comment)
             .filter_by(root_id=comment_id)
-            .order_by(desc(Comment.created_at))
+            .order_by(asc(Comment.created_at))
             .limit(Comment.page_size)
             .offset((page - 1) * Comment.page_size)
         ).scalars().all()
@@ -67,7 +75,9 @@ class Comment(Base):
         return {
             "id": self.id,
             "text": self.text,
-            "user": self.user.to_dict(),
+            "user": self.creator.to_dict(),
+            "answers_count": self.answers_count,
+            "created_at": datetime.strftime(self.created_at, "%Y-%m-%dT%H:%M:%S.%fZ")
         }
 
 
