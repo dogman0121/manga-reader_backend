@@ -173,7 +173,7 @@ class Manga(Base):
         ratings_sum, ratings_count = db.session.execute(
             Select(func.sum(Rating.rating), func.count(Rating.rating))
             .where(Rating.manga_id == self.id)
-        ).scalar()
+        ).scalars().all()
 
         return round(ratings_sum / ratings_count, 2), ratings_sum, ratings_count
 
