@@ -123,6 +123,12 @@ def get_poster_dict(manga_id: int, poster: Poster) -> dict:
         "large": f"/uploads/manga/{manga_id}/{poster.filenames['large']}",
     }
 
+class Save(Base):
+    __tablename__ = "save"
+
+    manga_id: Mapped[int] = mapped_column(ForeignKey("manga.id"), primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("user.id"), primary_key=True)
+
 class Rating(Base):
     __tablename__ = "rating"
 
@@ -181,6 +187,10 @@ class Manga(Base):
         ratings_sum, ratings_count = response
         return round(ratings_sum / ratings_count, 2), ratings_sum, ratings_count
 
+    @hybrid_property
+    def saves_count(self):
+        return db.session.execute(Select(func.count(Save.manga_id)).where(Save.manga_id == self.id)).scalar()
+
     @staticmethod
     def search(query):
         return db.session.execute(
@@ -217,6 +227,7 @@ class Manga(Base):
             "year": self.year if self.year else None,
             "views": self.views,
             "rating": self.rating[0],
+            "saves": self.saves_count,
             "rating_count": self.rating[2],
             "name_translations": [i.to_dict() for i in self.name_translations],
             "main_poster":
