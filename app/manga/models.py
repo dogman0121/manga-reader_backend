@@ -151,7 +151,7 @@ class Manga(Base):
     views: Mapped[Optional[int]] = mapped_column(default=0)
     adult_id: Mapped[Optional[int]] = mapped_column(ForeignKey("adult.id"), nullable=True)
     adult: Mapped["Adult"] = relationship()
-    genres: Mapped[list["Genre"]] = relationship(secondary="manga_genre")
+    genres: Mapped[list["Genre"]] = relationship("Genre", secondary="manga_genre")
     authors: Mapped[list["Person"]] = relationship(secondary="manga_author")
     artists: Mapped[list["Person"]] = relationship(secondary="manga_artist")
     publishers: Mapped[list["Person"]] = relationship(secondary="manga_publisher")

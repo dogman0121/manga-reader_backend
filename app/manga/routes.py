@@ -38,11 +38,11 @@ def update_data(manga: Manga) -> None:
 
     adult = Adult.query.get(int(request.form.get("adult") or 2025))
 
-    genres = [Genre.query.get(int(i)) for i in request.form.getlist("genre")]
+    genres = [Genre.query.get(int(i)) for i in request.form.getlist("genres")]
 
-    authors = [Person.get(int(i)) for i in request.form.getlist("author")]
-    artists = [Person.get(int(i)) for i in request.form.getlist("artist")]
-    publishers = [Person.get(int(i)) for i in request.form.getlist("publisher")]
+    authors = [Person.get(int(i)) for i in request.form.getlist("authors")]
+    artists = [Person.get(int(i)) for i in request.form.getlist("artists")]
+    publishers = [Person.get(int(i)) for i in request.form.getlist("publishers")]
 
     manga.name = name
     manga.name_translations = [
