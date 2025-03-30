@@ -7,7 +7,7 @@ from flask import url_for
 from app import db
 from app.models import Base
 from datetime import datetime
-from sqlalchemy import Integer, Text, ForeignKey, DateTime, Column, Table, String, Select, func, desc,
+from sqlalchemy import Integer, Text, ForeignKey, DateTime, Column, Table, String, Select, func
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
