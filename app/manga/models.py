@@ -7,7 +7,7 @@ from flask import url_for
 from app import db
 from app.models import Base
 from datetime import datetime
-from sqlalchemy import Integer, Text, ForeignKey, DateTime, Column, Table, String, Select, func, desc
+from sqlalchemy import Integer, Text, ForeignKey, DateTime, Column, Table, String, Select, func, desc,
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -112,6 +112,7 @@ class Poster(Base):
     filenames: Mapped[str] = mapped_column(JSONB, nullable=False)
     order: Mapped[int] = mapped_column(Integer, nullable=False)
 
+
 def get_poster_dict(manga_id: int, poster: Poster) -> dict:
 
     return {
@@ -121,6 +122,13 @@ def get_poster_dict(manga_id: int, poster: Poster) -> dict:
         "medium": f"/uploads/manga/{manga_id}/{poster.filenames['medium']}",
         "large": f"/uploads/manga/{manga_id}/{poster.filenames['large']}",
     }
+
+class Rating(Base):
+    __tablename__ = "rating"
+
+    manga_id: Mapped[int] = mapped_column(ForeignKey("manga.id"), primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("user.id"), primary_key=True, nullable=False)
+    rating: Mapped[int] = mapped_column(primary_key=True, nullable=False)
 
 class Manga(Base):
     __tablename__ = 'manga'
@@ -160,6 +168,15 @@ class Manga(Base):
     def get(manga_id):
         return db.session.get(Manga, manga_id)
 
+    @hybrid_property
+    def rating(self):
+        ratings_sum, ratings_count = db.session.execute(
+            Select(func.sum(Rating.rating), func.count(Rating.rating))
+            .where(Rating.manga_id == self.id)
+        ).scalar()
+
+        return round(ratings_sum / ratings_count, 2), ratings_sum, ratings_count
+
     @staticmethod
     def search(query):
         return db.session.execute(
@@ -194,6 +211,9 @@ class Manga(Base):
             "status": self.status.to_dict() if self.status else None,
             "adult": self.adult.to_dict() if self.adult else None,
             "year": self.year if self.year else None,
+            "views": self.views,
+            "rating": self.rating[0],
+            "rating_count": self.rating[2],
             "name_translations": [i.to_dict() for i in self.name_translations],
             "main_poster":
                 get_poster_dict(self.id, self.main_poster)
@@ -208,5 +228,7 @@ class Manga(Base):
             "artists": [artist.to_dict() for artist in self.artists],
             "publishers": [publisher.to_dict() for publisher in self.publishers],
             "permissions": self.get_permissions(user),
+            "description": self.desctiption,
+            "genres": [i.to_dict() for i in self.genres],
         }
 
