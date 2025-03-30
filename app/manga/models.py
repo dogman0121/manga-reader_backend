@@ -170,11 +170,15 @@ class Manga(Base):
 
     @hybrid_property
     def rating(self):
-        ratings_sum, ratings_count = db.session.execute(
+        response = db.session.execute(
             Select(func.sum(Rating.rating), func.count(Rating.rating))
             .where(Rating.manga_id == self.id)
-        ).scalars().all()
+        ).scalar()
 
+        if response is None:
+            return [0, 0, 0]
+
+        ratings_sum, ratings_count = response
         return round(ratings_sum / ratings_count, 2), ratings_sum, ratings_count
 
     @staticmethod
@@ -228,7 +232,7 @@ class Manga(Base):
             "artists": [artist.to_dict() for artist in self.artists],
             "publishers": [publisher.to_dict() for publisher in self.publishers],
             "permissions": self.get_permissions(user),
-            "description": self.desctiption,
+            "description": self.description,
             "genres": [i.to_dict() for i in self.genres],
         }
 
