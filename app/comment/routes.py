@@ -8,8 +8,8 @@ from flask import request, jsonify
 
 from flask_jwt_extended import (jwt_required, get_jwt_identity)
 
-@bp.route('/api/comment', methods=['GET'])
-def get_comments():
+@bp.route('/api/v1/comments', methods=['GET'])
+def get_comments_v1():
     manga_id = request.args.get('manga', type=int)
     root_id = request.args.get('root', type=int)
     parent_id = request.args.get('parent', type=int)
@@ -28,14 +28,14 @@ def get_comments():
     return jsonify(msg="Bad request"), 400
 
 
-@bp.route('/api/comment/<int:comment_id>', methods=['GET'])
-def get_comment(comment_id):
+@bp.route('/api/v1/comments/<int:comment_id>', methods=['GET'])
+def get_comment_v1(comment_id):
     return jsonify(Comment.get(comment_id).to_dict())
 
 
-@bp.route('/api/comment', methods=['POST'])
+@bp.route('/api/v1/comments', methods=['POST'])
 @jwt_required()
-def add_comment():
+def add_comment_v1():
     body = request.json
 
     if body is None:
@@ -59,10 +59,10 @@ def add_comment():
 
     return jsonify(comment.to_dict()), 201
 
-@bp.route('/api/comment', methods=['PUT'])
-def update_comment():
+@bp.route('/api/v1/comments', methods=['PUT'])
+def update_comment_v1():
     pass
 
-@bp.route('/api/comment', methods=['DELETE'])
-def delete_comment():
+@bp.route('/api/v1/comments', methods=['DELETE'])
+def delete_comment_v1():
     pass

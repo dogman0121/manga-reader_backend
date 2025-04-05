@@ -4,8 +4,8 @@ from app.person.models import Person
 from app.search import bp
 from app.manga.models import Manga
 
-@bp.route('/api/search', methods=['GET'])
-def search():
+@bp.route('/api/v1/search', methods=['GET'])
+def search_v1():
     query = request.args.get('query')
     section = request.args.get('section')
 

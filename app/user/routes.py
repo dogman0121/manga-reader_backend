@@ -10,13 +10,13 @@ from app.user.models import User
 from app.email import send_registration_verification_mail, send_password_recovery_mail
 
 
-@bp.route('/api/user/<int:user_id>', methods=['GET'])
-def get_user(user_id: int):
+@bp.route('/api/v1/users/<int:user_id>', methods=['GET'])
+def get_user_v1(user_id: int):
     return jsonify(User.get_by_id(user_id))
 
-@bp.route('/api/user/<int:user_id>', methods=['PUT'])
+@bp.route('/api/v1/users/<int:user_id>', methods=['PUT'])
 @jwt_required()
-def edit_user(user_id: int):
+def edit_user_v1(user_id: int):
     user = User.get_by_id(int(get_jwt_identity()))
 
     if user.id != user_id:
@@ -31,15 +31,15 @@ def edit_user(user_id: int):
     user.update()
     return jsonify(user.to_dict())
 
-@bp.route('/api/user/me', methods=['GET'])
+@bp.route('/api/v1/user/me', methods=['GET'])
 @jwt_required()
-def get_current_user():
+def get_current_user_v1():
     user = get_jwt_identity()
     return jsonify(User.get_by_id(user).to_dict())
 
 
-@bp.route('/api/user/register', methods=['POST'])
-def register_user():
+@bp.route('/api/v1/user/register', methods=['POST'])
+def register_user_v1():
     login = request.json['login']
     email = request.json['email']
     password = request.json['password']
@@ -65,8 +65,8 @@ def register_user():
         msg="Email sent",
     )
 
-@bp.route("/api/user/verify", methods=["POST"])
-def verify_registration():
+@bp.route("/api/v1/user/verify", methods=["POST"])
+def verify_registration_v1():
     if "token" not in request.json:
         return jsonify({"msg": "Token missing"})
 
@@ -92,8 +92,8 @@ def verify_registration():
     )
 
 
-@bp.route('/api/user/login', methods=['POST'])
-def login_user():
+@bp.route('/api/v1/user/login', methods=['POST'])
+def login_user_v1():
     login = request.json['login']
     password = request.json['password']
 
@@ -110,17 +110,17 @@ def login_user():
     )
 
 
-@bp.route("/api/user/refresh", methods=["POST"])
+@bp.route("/api/v1/user/refresh", methods=["POST"])
 @jwt_required(refresh=True)
-def refresh_user():
+def refresh_user_v1():
     identity = get_jwt_identity()
     access_token = create_access_token(identity=identity)
     refresh_token = create_refresh_token(identity=identity)
     return jsonify(access_token=access_token, refresh_token=refresh_token)
 
 
-@bp.route("/api/user/forgot", methods=["POST"])
-def forgot_user():
+@bp.route("/api/v1/user/forgot", methods=["POST"])
+def forgot_user_v1():
     if "email" not in request.json:
         return jsonify({"msg": "Email missing"})
 
@@ -138,8 +138,8 @@ def forgot_user():
     )
 
 
-@bp.route("/api/user/recovery", methods=["POST"])
-def recover_user():
+@bp.route("/api/v1/user/recovery", methods=["POST"])
+def recover_user_v1():
     if "token" not in request.json:
         return jsonify({"msg": "Token missing"})
 

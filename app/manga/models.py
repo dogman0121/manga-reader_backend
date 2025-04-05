@@ -1,13 +1,13 @@
 import os
 
-from sqlalchemy.ext.hybrid import hybrid_property
+from sqlalchemy.ext.hybrid import hybrid_property, hybrid_method
 
 from flask import url_for
 
 from app import db
 from app.models import Base
 from datetime import datetime
-from sqlalchemy import Integer, Text, ForeignKey, DateTime, Column, Table, String, Select, func
+from sqlalchemy import Integer, Text, ForeignKey, DateTime, Column, Table, String, Select, func, desc, and_
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -137,6 +137,8 @@ class Rating(Base):
     rating: Mapped[int] = mapped_column(primary_key=True, nullable=False)
 
 class Manga(Base):
+    page_size = 20
+
     __tablename__ = 'manga'
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True, nullable=False, unique=True)
@@ -191,10 +193,73 @@ class Manga(Base):
     def saves_count(self):
         return db.session.execute(Select(func.count(Save.manga_id)).where(Save.manga_id == self.id)).scalar()
 
+    # ----- Filters -----
+    @hybrid_method
+    def validate_types(self, type_ids: list[int]):
+        if not type_ids:
+            return True
+
+        return self.type_id.in_(type_ids)
+
+    @hybrid_method
+    def validate_statuses(self, status_ids: list[int]):
+        if not status_ids:
+            return True
+
+        return self.status.id in status_ids
+
+    @hybrid_method
+    def validate_genres(self, genres: list[int]):
+        if not genres:
+            return True
+
+        if not self.genres:
+            return False
+
+        return Manga.genres.any(Genre.id.in_(genres))
+
+    @hybrid_method
+    def validate_year(self, year_from: int, year_to: int):
+        return and_(year_from <= self.year, self.year <= year_to)
+
+    @hybrid_method
+    def validate_rating(self, rating_from: int, rating_to: int):
+        rating_sum, rating_len = self.rating
+        if rating_len == 0:
+            return True if rating_from == 0 else False
+        rating = rating_sum / rating_len
+        return and_(rating_from <= rating, rating <= rating_to)
+
     @staticmethod
-    def search(query):
+    def get_with_filters(types: list[int] = (), statuses: list[int] = (), genres: list[int] = (),
+                         year_from: int = 0, year_to: int = 10000, rating_from: int = 0, rating_to: int = 10,
+                         adult: bool = False, sortings: int = 1, page: int = 1):
+        query = (Select(Manga).filter(
+            Manga.validate_types(types),
+            Manga.validate_statuses(statuses),
+            Manga.validate_year(year_from, year_to),
+            Manga.validate_genres(genres),
+            Manga.validate_rating(rating_from, rating_to)
+        )
+            .join(Save, Save.manga_id == Manga.id, isouter=True)
+            .join(Rating, Rating.manga_id == Manga.id, isouter=True)
+            .group_by(Manga.id))
+
+        if sortings == 1:
+            return db.session.execute(query.order_by(desc(Manga.views)).limit(Manga.page_size).offset(Manga.page_size * (page-1))).scalars().all()
+        elif sortings == 2:
+            return db.session.execute(query.order_by(desc(func.count(Save.manga_id))).limit(Manga.page_size).offset(Manga.page_size * (page-1))).scalars().all()
+        elif sortings == 3:
+            return db.session.execute(query.order_by(desc(func.count(Rating.manga_id))).limit(Manga.page_size).offset(Manga.page_size * (page-1))).scalars().all()
+        elif sortings == 4:
+            return db.session.execute(query.order_by(desc(Manga.year)).limit(Manga.page_size).offset(Manga.page_size * (page-1))).scalars().all()
+
+    @staticmethod
+    def search(query, page=1):
         return db.session.execute(
-            Select(Manga).filter(func.lower(Manga.name).like(f"%{query.lower()}%"))
+            Select(Manga)
+            .filter(func.lower(Manga.name).like(f"%{query.lower()}%"))
+            .limit(Manga.page_size).offset(Manga.page_size * (page-1))
         ).scalars().all()
 
     def can_edit(self, user):

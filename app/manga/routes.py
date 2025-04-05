@@ -130,9 +130,9 @@ def update_media(manga: Manga) -> None:
 
 
 
-@bp.route('/api/manga/<int:manga_id>', methods=['GET'])
+@bp.route('/api/v1/manga/<int:manga_id>', methods=['GET'])
 @jwt_required(optional=True)
-def get_manga(manga_id):
+def get_manga_v1(manga_id):
     user_id = get_jwt_identity()
 
     user = User.get_by_id(user_id) if user_id else None
@@ -145,9 +145,9 @@ def get_manga(manga_id):
     return jsonify(manga.to_dict(user=user, posters=True))
 
 
-@bp.route("/api/manga/add", methods=["POST"])
+@bp.route("/api/v1/manga/add", methods=["POST"])
 @jwt_required()
-def add_manga():
+def add_manga_v1():
     result, message = validate_manga()
     if not result:
         return jsonify(msg=message), 400
@@ -165,9 +165,9 @@ def add_manga():
     return jsonify(manga.to_dict(User.get_by_id(get_jwt_identity()))), 201
 
 
-@bp.route("/api/manga/<int:manga_id>/edit", methods=["PUT"])
+@bp.route("/api/v1/manga/<int:manga_id>/edit", methods=["PUT"])
 @jwt_required()
-def edit_manga(manga_id: int) -> [str, int]:
+def edit_manga_v1(manga_id: int) -> [str, int]:
     manga = Manga.get(manga_id)
     user = User.get_by_id(get_jwt_identity())
 

@@ -8,9 +8,9 @@ from app.person import bp
 from app.person.models import Person
 
 
-@bp.route('/api/person/create', methods=['POST'])
+@bp.route('/api/v1/persons/create', methods=['POST'])
 @jwt_required()
-def add_person():
+def add_person_v1():
     name = request.json['name']
 
     if Person.get_by_name(name):
@@ -21,8 +21,8 @@ def add_person():
 
     return jsonify(person.to_dict())
 
-@bp.route('/api/person/<int:person_id>', methods=['GET'])
-def get_person(person_id):
+@bp.route('/api/v1/persons/<int:person_id>', methods=['GET'])
+def get_person_v1(person_id):
     person = Person.get(person_id)
 
     if person is None:
@@ -30,19 +30,19 @@ def get_person(person_id):
 
     return jsonify(person.to_dict())
 
-@bp.route('/api/person/<int:person_id>', methods=['PUT'])
+@bp.route('/api/v1/persons/<int:person_id>', methods=['PUT'])
 @jwt_required()
-def update_person():
+def update_person_v1():
     pass
 
-@bp.route('/api/person/<int:person_id>/subscribe', methods=['GET'])
+@bp.route('/api/v1/persons/<int:person_id>/subscribe', methods=['GET'])
 @jwt_required()
-def subscribe_person(person_id):
+def subscribe_person_v1(person_id):
     pass
 
-@bp.route('/api/person/<int:person_id>/unsubscribe', methods=['GET'])
+@bp.route('/api/v1/persons/<int:person_id>/unsubscribe', methods=['GET'])
 @jwt_required()
-def unsubscribe_person(person_id):
+def unsubscribe_person_v1(person_id):
     pass
 
 
