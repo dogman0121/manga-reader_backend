@@ -17,20 +17,20 @@ def get_comments_v1():
 
 
     if manga_id is not None:
-        return jsonify([i.to_dict() for i in Comment.get_manga_comments(manga_id=manga_id, page=page)])
+        return jsonify(data=[i.to_dict() for i in Comment.get_manga_comments(manga_id=manga_id, page=page)])
 
     if root_id is not None:
-        return jsonify([i.to_dict() for i in Comment.get_comment_descendants(comment_id=root_id, page=page)])
+        return jsonify(data=[i.to_dict() for i in Comment.get_comment_descendants(comment_id=root_id, page=page)])
 
     if parent_id is not None:
-        return jsonify([i.to_dict() for i in Comment.get_comment_children(comment_id=parent_id, page=page)])
+        return jsonify(data=[i.to_dict() for i in Comment.get_comment_children(comment_id=parent_id, page=page)])
 
-    return jsonify(msg="Bad request"), 400
+    return jsonify(error={"code": "bad_request"}), 400
 
 
 @bp.route('/api/v1/comments/<int:comment_id>', methods=['GET'])
 def get_comment_v1(comment_id):
-    return jsonify(Comment.get(comment_id).to_dict())
+    return jsonify(data=Comment.get(comment_id).to_dict())
 
 
 @bp.route('/api/v1/comments', methods=['POST'])
@@ -39,10 +39,10 @@ def add_comment_v1():
     body = request.json
 
     if body is None:
-        return jsonify(msg="Bad Request"), 400
+        return jsonify(error={"code": "bad_request"}), 400
 
     if not body.get("text"):
-        return jsonify(msg="Comment text is empty"), 400
+        return jsonify(error={"code": "bad_request"}), 400
 
     text = body.get("text")
     user = User.get_by_id(get_jwt_identity())
@@ -57,7 +57,7 @@ def add_comment_v1():
     else:
         comment.add()
 
-    return jsonify(comment.to_dict()), 201
+    return jsonify(data=comment.to_dict()), 201
 
 @bp.route('/api/v1/comments', methods=['PUT'])
 def update_comment_v1():
