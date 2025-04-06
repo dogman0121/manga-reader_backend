@@ -299,7 +299,7 @@ class Manga(Base):
                 get_poster_dict(self.id, self.main_poster)
                 if self.main_poster else None,
             "background":
-                self.background.filename
+                f"/uploads/manga/{self.id}/{self.background}"
                 if self.background else None,
             "posters": [
                 get_poster_dict(self.id, poster) for poster in sorted(self.posters, key=lambda x: x.order)

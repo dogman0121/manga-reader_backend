@@ -122,14 +122,16 @@ def update_media(manga: Manga) -> None:
             manga.main_poster_number = len(manga.posters)-1
 
     # Save background image
-    background = request.form.get("background")
+    background = request.files.get("background")
     if background is not None:
-        os.remove(f"app/static/manga/{manga.id}/{manga.background}")
+        try:
+            os.remove(f"app/static/manga/{manga.id}/{manga.background}")
+        except FileNotFoundError:
+            pass
+
         filename = get_uuid4_filename() + ".jpg"
         background.save(f"app/static/manga/{manga.id}/" + filename)
         manga.background = filename
-
-
 
 
 @bp.route('/api/v1/manga/<int:manga_id>', methods=['GET'])
