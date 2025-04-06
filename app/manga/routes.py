@@ -152,6 +152,9 @@ def get_manga_v1(manga_id):
     if manga is None:
         return jsonify(msg="Not found"), 404
 
+    manga.views += 1
+    manga.update()
+
     return jsonify(manga.to_dict(user=user, posters=True))
 
 
