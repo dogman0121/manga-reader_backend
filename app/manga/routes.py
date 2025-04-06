@@ -124,8 +124,10 @@ def update_media(manga: Manga) -> None:
     # Save background image
     background = request.form.get("background")
     if background is not None:
-        filename = get_uuid4_filename()
-        background.save(f"app/static/manga/{manga.id}/" + filename + ".jpg")
+        os.remove(f"app/static/manga/{manga.id}/{manga.background}")
+        filename = get_uuid4_filename() + ".jpg"
+        background.save(f"app/static/manga/{manga.id}/" + filename)
+        manga.background = filename
 
 
 
