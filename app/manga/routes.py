@@ -59,12 +59,14 @@ def update_data(manga: Manga) -> None:
     manga.artists = artists
     manga.publishers = publishers
 
-sizes = {
+poster_sizes = {
     "thumbnail": (80, 120),
     "small": (400, 600),
     "medium": (800, 1200),
     "large": (1200, 1800),
 }
+
+background_size = (1600, 900)
 
 def create_upload_folder(manga_id) -> None:
     if not os.path.exists(f'app/static/manga/{manga_id}'):
@@ -97,7 +99,7 @@ def update_media(manga: Manga) -> None:
         source_img = Image.open(new_poster)
         json_data = {}
 
-        for name, size in sizes.items():
+        for name, size in poster_sizes.items():
             new_img = source_img.copy().convert("RGB")
             new_img.thumbnail(size)
             filename = identifier + "_" + name + ".jpg"
@@ -129,8 +131,12 @@ def update_media(manga: Manga) -> None:
         except FileNotFoundError:
             pass
 
+
+        bg_image = Image.open(background)
+        bg_image.thumbnail(background_size)
+
         filename = get_uuid4_filename() + ".jpg"
-        background.save(f"app/static/manga/{manga.id}/" + filename)
+        bg_image.save(f"app/static/manga/{manga.id}/" + filename)
         manga.background = filename
 
 
