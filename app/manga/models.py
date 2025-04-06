@@ -2,8 +2,6 @@ import os
 
 from sqlalchemy.ext.hybrid import hybrid_property, hybrid_method
 
-from flask import url_for
-
 from app import db
 from app.models import Base
 from datetime import datetime
@@ -42,6 +40,17 @@ manga_genres = Table(
     Column("genre_id", Integer, db.ForeignKey("genre.id")),
     Column("title_id", Integer, db.ForeignKey("manga.id")),
 )
+
+class Rating(Base):
+    manga_id: Mapped[int] = mapped_column(Integer, ForeignKey("manga.id"), primary_key=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("person.id"), primary_key=True)
+    rating: Mapped[int] = mapped_column(Integer)
+
+    @staticmethod
+    def get(user_id: int, manga_id: int) -> Optional["Rating"]:
+        return db.session.execute(
+            Select(Rating).where(and_(Rating.manga_id == manga_id, Rating.user_id == user_id))
+        ).scalar()
 
 class Genre(Base):
     __tablename__ = "genre"
@@ -281,6 +290,16 @@ class Manga(Base):
         return {
             "edit": self.can_edit(user),
         }
+
+    def add_rating(self, user, rating):
+        rating = Rating(user_id=user.id, manga_id=self.id, rating=rating)
+        rating.add()
+
+    def delete_rating(self, user):
+        rating = Rating.get(user_id=user.id, manga_id=self.id)
+
+        if rating is not None:
+            rating.delete()
 
     def to_dict(self, user=None, posters=False):
         return {

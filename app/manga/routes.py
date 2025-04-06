@@ -10,6 +10,7 @@ from app.user.models import User
 from app.manga import bp
 from app.manga.models import Manga, NameTranslation, Genre, Adult, Type, Status, Poster
 from app.person.models import Person
+from app.manga.models import Rating
 
 from app.manga.utils import get_uuid4_filename
 
@@ -196,3 +197,48 @@ def edit_manga_v1(manga_id: int) -> [str, int]:
     manga.update()
 
     return jsonify(manga.to_dict(user=User.get_by_id(get_jwt_identity()), posters=True)), 200
+
+
+@bp.route("/api/v1/manga/<int:manga_id>/delete", methods=["DELETE"])
+@jwt_required()
+def delete_manga_v1(manga_id: int) -> [str, int]:
+    pass
+
+
+@bp.route("api/v1/rating", methods=["POST"])
+@jwt_required()
+def add_rating_v1() -> [str, int]:
+    rating = request.json.get("rating")
+    manga_id = request.json.get("manga_id")
+
+    if rating is None or manga_id is None:
+        return jsonify(error={"code": "bad_request"}), 400
+
+    manga = Manga.get(manga_id)
+
+    if manga is None:
+        return jsonify(error={"code": "not_found"}), 404
+
+    user = User.get_by_id(get_jwt_identity())
+    manga.add_rating(user, rating)
+
+    return jsonify(data=None, error=None), 201
+
+
+@bp.route("api/v1/rating", methods=["DELETE"])
+@jwt_required()
+def delete_manga_v1() -> [str, int]:
+    manga_id = request.json.get("manga_id")
+
+    if manga_id is None:
+        return jsonify(error={"code": "bad_request"}), 400
+
+    manga = Manga.get(manga_id)
+
+    if manga is None:
+        return jsonify(error={"code": "not_found"}), 404
+
+    user = User.get_by_id(get_jwt_identity())
+    manga.remove_rating(user)
+
+    return jsonify(data=None, error=None), 200
