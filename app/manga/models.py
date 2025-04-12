@@ -42,9 +42,11 @@ manga_genres = Table(
 )
 
 class Rating(Base):
-    manga_id: Mapped[int] = mapped_column(Integer, ForeignKey("manga.id"), primary_key=True)
-    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("person.id"), primary_key=True)
-    rating: Mapped[int] = mapped_column(Integer)
+    __tablename__ = "rating"
+
+    manga_id: Mapped[int] = mapped_column(ForeignKey("manga.id"), primary_key=True, nullable=False)
+    user_id: Mapped[int] = mapped_column(ForeignKey("user.id"), primary_key=True, nullable=False)
+    rating: Mapped[int] = mapped_column(primary_key=True, nullable=False)
 
     @staticmethod
     def get(user_id: int, manga_id: int) -> Optional["Rating"]:
@@ -137,13 +139,6 @@ class Save(Base):
 
     manga_id: Mapped[int] = mapped_column(ForeignKey("manga.id"), primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("user.id"), primary_key=True)
-
-class Rating(Base):
-    __tablename__ = "rating"
-
-    manga_id: Mapped[int] = mapped_column(ForeignKey("manga.id"), primary_key=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("user.id"), primary_key=True, nullable=False)
-    rating: Mapped[int] = mapped_column(primary_key=True, nullable=False)
 
 class Manga(Base):
     page_size = 20

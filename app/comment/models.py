@@ -9,9 +9,25 @@ from sqlalchemy.ext.hybrid import hybrid_property
 from datetime import datetime
 
 class Vote(Base):
+    __tablename__ = "vote"
+
     comment_id: Mapped[int] = mapped_column(Integer, ForeignKey("comment.id"), primary_key=True)
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey('user.id'), primary_key=True)
-    vote_type: Mapped[int] = mapped_column(Integer)
+    type: Mapped[int] = mapped_column(Integer)
+
+    def to_dict(self) -> dict:
+        return {
+            "comment": self.comment_id,
+            "user": self.user_id,
+            "type": self.type,
+        }
+
+
+    @staticmethod
+    def get(manga_id, user_id):
+        return db.session.execute(
+            Select(Vote).where(and_(Vote.comment_id == manga_id, Vote.user_id == user_id))
+        ).scalar()
 
 
 class Comment(Base):
@@ -40,17 +56,29 @@ class Comment(Base):
     @hybrid_property
     def up_votes(self) -> int:
         return db.session.execute(
-            Select(func.count("*")).where(and_(Vote.comment_id == self.id, Vote.vote_type == 0))
+            Select(func.count("*")).where(and_(Vote.comment_id == self.id, Vote.type == 0))
         ).scalar()
 
     @hybrid_property
     def down_votes(self) -> int:
         return db.session.execute(
-            Select(func.count("*")).where(and_(Vote.comment_id == self.id, Vote.vote_type == 1))
+            Select(func.count("*")).where(and_(Vote.comment_id == self.id, Vote.type == 1))
         ).scalar()
 
     def is_voted_by_user(self, user) -> bool:
-        return db.session.execute(Exists(Vote).where(Vote.comment_id == self.id, Vote.user_id == user.id)).scalar()
+        if user is None:
+            return False
+
+        return self.get_user_vote(user) is not None
+
+    def get_user_vote(self, user):
+        if user is None:
+            return None
+
+        return db.session.execute(
+            Select(Vote)
+            .where(and_(Vote.user_id == user.id, Comment.id == self.id))
+        ).scalar()
 
     @staticmethod
     def get(comment_id: int) -> "Comment":
@@ -92,6 +120,17 @@ class Comment(Base):
         self.add()
         MangaComment(manga_id=manga_id, comment_id=self.id).add()
 
+    def add_vote(self, user_id, vote_type):
+        vote = Vote(comment_id=self.id, user_id=user_id, type=vote_type)
+
+        vote.add()
+
+    def delete_vote(self, user_id):
+        vote = Vote.get(self.id, user_id)
+
+        if vote is not None:
+            vote.delete()
+
     def to_dict(self, user=None) -> dict:
         return {
             "id": self.id,
@@ -101,7 +140,7 @@ class Comment(Base):
             "created_at": datetime.strftime(self.created_at, "%Y-%m-%dT%H:%M:%S.%fZ"),
             "up_votes": self.up_votes,
             "down_votes": self.down_votes,
-            "is_voted_by_user": self.is_voted_by_user(user) if user is not None else None,
+            "user_vote": self.get_user_vote(user).type if self.get_user_vote(user) else None,
         }
 
 

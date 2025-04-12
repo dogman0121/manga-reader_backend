@@ -205,7 +205,7 @@ def delete_manga_v1(manga_id: int) -> [str, int]:
     pass
 
 
-@bp.route("api/v1/rating", methods=["POST"])
+@bp.route("/api/v1/ratings", methods=["POST"])
 @jwt_required()
 def add_rating_v1() -> [str, int]:
     rating = request.json.get("rating")
@@ -225,9 +225,9 @@ def add_rating_v1() -> [str, int]:
     return jsonify(data=None, error=None), 201
 
 
-@bp.route("api/v1/rating", methods=["DELETE"])
+@bp.route("/api/v1/ratings", methods=["DELETE"])
 @jwt_required()
-def delete_manga_v1() -> [str, int]:
+def delete_rating_v1() -> [str, int]:
     manga_id = request.json.get("manga_id")
 
     if manga_id is None:
