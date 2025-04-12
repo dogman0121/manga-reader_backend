@@ -12,7 +12,9 @@ class Vote(Base):
     __tablename__ = "vote"
 
     comment_id: Mapped[int] = mapped_column(Integer, ForeignKey("comment.id"), primary_key=True)
+    comment: Mapped["Comment"] = relationship()
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey('user.id'), primary_key=True)
+    user: Mapped["User"] = relationship()
     type: Mapped[int] = mapped_column(Integer)
 
     def to_dict(self) -> dict:
@@ -77,7 +79,7 @@ class Comment(Base):
 
         return db.session.execute(
             Select(Vote)
-            .where(and_(Vote.user_id == user.id, Comment.id == self.id))
+            .where(and_(Vote.user_id == user.id, Vote.comment_id == self.id))
         ).scalar()
 
     @staticmethod
