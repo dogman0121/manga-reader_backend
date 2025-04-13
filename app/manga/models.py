@@ -324,5 +324,6 @@ class Manga(Base):
             "permissions": self.get_permissions(user),
             "description": self.description,
             "genres": [i.to_dict() for i in self.genres],
+            "user_rating": Rating.get(user.id, self.id) if user is not None else None,
         }
 
