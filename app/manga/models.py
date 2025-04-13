@@ -46,7 +46,7 @@ class Rating(Base):
 
     manga_id: Mapped[int] = mapped_column(ForeignKey("manga.id"), primary_key=True, nullable=False)
     user_id: Mapped[int] = mapped_column(ForeignKey("user.id"), primary_key=True, nullable=False)
-    rating: Mapped[int] = mapped_column(primary_key=True, nullable=False)
+    rating: Mapped[int] = mapped_column(nullable=False)
 
     @staticmethod
     def get(user_id: int, manga_id: int) -> Optional["Rating"]:
@@ -185,9 +185,9 @@ class Manga(Base):
         response = db.session.execute(
             Select(func.sum(Rating.rating), func.count(Rating.rating))
             .where(Rating.manga_id == self.id)
-        ).scalar()
+        ).one()
 
-        if response is None:
+        if response[0] is None or response[1] is None:
             return [0, 0, 0]
 
         ratings_sum, ratings_count = response
@@ -290,6 +290,11 @@ class Manga(Base):
         rating = Rating(user_id=user.id, manga_id=self.id, rating=rating)
         rating.add()
 
+    def update_rating(self, user, new_rating):
+        rating = Rating.get(user_id=user.id, manga_id=self.id)
+        rating.rating = new_rating
+        rating.update()
+
     def delete_rating(self, user):
         rating = Rating.get(user_id=user.id, manga_id=self.id)
 
@@ -324,6 +329,6 @@ class Manga(Base):
             "permissions": self.get_permissions(user),
             "description": self.description,
             "genres": [i.to_dict() for i in self.genres],
-            "user_rating": Rating.get(user.id, self.id) if user is not None else None,
+            "user_rating": Rating.get(user.id, self.id).rating if user and Rating.get(user.id, self.id) else None,
         }
 

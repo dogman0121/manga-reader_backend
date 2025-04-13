@@ -132,7 +132,6 @@ def update_media(manga: Manga) -> None:
         except FileNotFoundError:
             pass
 
-
         bg_image = Image.open(background)
         bg_image.thumbnail(background_size)
 
@@ -205,34 +204,35 @@ def delete_manga_v1(manga_id: int) -> [str, int]:
     pass
 
 
-@bp.route("/api/v1/ratings", methods=["POST"])
+@bp.route("/api/v1/manga/<int:manga_id>/ratings", methods=["POST"])
 @jwt_required()
-def add_rating_v1() -> [str, int]:
+def add_rating_v1(manga_id) -> [str, int]:
     rating = request.json.get("rating")
-    manga_id = request.json.get("manga_id")
 
-    if rating is None or manga_id is None:
+    if rating is None:
+        return jsonify(error={"code": "bad_request"}), 400
+
+    try:
+        rating_int = int(rating)
+    except ValueError:
         return jsonify(error={"code": "bad_request"}), 400
 
     manga = Manga.get(manga_id)
-
     if manga is None:
         return jsonify(error={"code": "not_found"}), 404
 
     user = User.get_by_id(get_jwt_identity())
-    manga.add_rating(user, rating)
+    if Rating.get(user.id, manga_id) is None:
+        manga.add_rating(user, rating_int)
+    else:
+        manga.update_rating(user, rating_int)
 
     return jsonify(data=None, error=None), 201
 
 
-@bp.route("/api/v1/ratings", methods=["DELETE"])
+@bp.route("/api/v1/manga/<int:manga_id>/ratings", methods=["DELETE"])
 @jwt_required()
-def delete_rating_v1() -> [str, int]:
-    manga_id = request.json.get("manga_id")
-
-    if manga_id is None:
-        return jsonify(error={"code": "bad_request"}), 400
-
+def delete_rating_v1(manga_id) -> [str, int]:
     manga = Manga.get(manga_id)
 
     if manga is None:
