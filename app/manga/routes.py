@@ -225,7 +225,10 @@ def add_rating_v1(manga_id) -> [str, int]:
     if Rating.get(user.id, manga_id) is None:
         manga.add_rating(user, rating_int)
     else:
-        manga.update_rating(user, rating_int)
+        if rating_int == Rating.get(user.id, manga_id).rating:
+            manga.delete_rating(user)
+        else:
+            manga.update_rating(user, rating_int)
 
     return jsonify(data=None, error=None), 201
 
