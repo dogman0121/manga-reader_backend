@@ -12,7 +12,7 @@ from app.email import send_registration_verification_mail, send_password_recover
 
 @bp.route('/api/v1/users/<int:user_id>', methods=['GET'])
 def get_user_v1(user_id: int):
-    return jsonify(User.get_by_id(user_id).to_dict())
+    return jsonify(data = User.get_by_id(user_id).to_dict())
 
 @bp.route('/api/v1/users/<int:user_id>', methods=['PUT'])
 @jwt_required()
@@ -35,7 +35,7 @@ def edit_user_v1(user_id: int):
 @jwt_required()
 def get_current_user_v1():
     user = get_jwt_identity()
-    return jsonify(User.get_by_id(user).to_dict())
+    return jsonify(data=User.get_by_id(user).to_dict())
 
 
 @bp.route('/api/v1/users/register', methods=['POST'])
