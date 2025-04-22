@@ -1,7 +1,7 @@
 from flask import current_app
 from app import db
 from app.models import Base
-from sqlalchemy import Table, ForeignKey, Column, String, Integer, DateTime, Text, insert, delete, and_
+from sqlalchemy import Table, ForeignKey, Column, String, Integer, DateTime, Text, insert, delete, select, and_
 from sqlalchemy.orm import mapped_column, Mapped
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -114,6 +114,13 @@ class User(Base):
         except Exception:
             pass
 
+    def is_subscribed(self, subscriber):
+        return db.session.execute(select(user_subscribers)
+            .where(and_(
+                user_subscribers.c.user_id == self.id,
+                user_subscribers.c.subscriber_id == subscriber.id
+        ))).scalar() is not None
+
     ################################
 
     ###### Getting and verifying tokens ######
@@ -150,11 +157,12 @@ class User(Base):
 
     ################################
 
-    def to_dict(self):
+    def to_dict(self, user=None):
         return {
             "id": self.id,
             "login": self.login,
             "email": self.email,
             "role": self.role,
             "created_at": datetime.strftime(self.created_at, "%Y-%m-%dT%H:%M:%S.%fZ"),
+            "subscribed": None if user is None else self.is_subscribed(user),
         }
