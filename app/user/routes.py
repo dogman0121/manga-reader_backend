@@ -23,6 +23,9 @@ def subscribe_v1(user_id: int):
     user = User.get_by_id(user_id)
     subscriber = User.get_by_id(get_jwt_identity())
 
+    if user.id == subscriber.id:
+        return jsonify(data=None, error={"code": "forbidden"}), 403
+
     if user is None:
         return jsonify(data=None, error={"code": "not_found"}), 404
 
