@@ -37,10 +37,10 @@ def subscribe_v1(user_id: int):
 
     if request.method == 'POST':
         user.subscribe(subscriber)
-        return jsonify(), 204
+        return jsonify(error=None, data=None), 204
     elif request.method == 'DELETE':
         user.unsubscribe(subscriber)
-        return jsonify(), 204
+        return jsonify(error=None, data=None), 204
 
 
 @bp.route('/api/v1/users/<int:user_id>', methods=['PUT'])
