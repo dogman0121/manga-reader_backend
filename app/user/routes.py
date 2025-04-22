@@ -11,11 +11,14 @@ from app.email import send_registration_verification_mail, send_password_recover
 
 
 @bp.route('/api/v1/users/<int:user_id>', methods=['GET'])
+@jwt_required(optional=True)
 def get_user_v1(user_id: int):
     user = User.get_by_id(user_id)
+    current_user = User.get_by_id(get_jwt_identity())
+
     if user is None:
         return jsonify(data=None, error={"code": "not_found"}), 404
-    return jsonify(data = user.to_dict())
+    return jsonify(data = user.to_dict(user=current_user)), 200
 
 @bp.route('/api/v1/users/<int:user_id>/subscribe', methods=['POST', 'DELETE'])
 @jwt_required()
