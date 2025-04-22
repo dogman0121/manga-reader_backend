@@ -111,6 +111,7 @@ class User(Base):
                                .where(and_(user_subscribers.c.user_id == self.id,
                                            user_subscribers.c.subscriber_id == subscriber.id
                                            )))
+            db.session.commit()
         except Exception:
             pass
 
