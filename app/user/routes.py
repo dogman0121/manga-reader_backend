@@ -17,6 +17,26 @@ def get_user_v1(user_id: int):
         return jsonify(data=None, error={"code": "not_found"}), 404
     return jsonify(data = user.to_dict())
 
+@bp.route('/api/v1/users/<int:user_id>/subscribe', methods=['POST', 'DELETE'])
+@jwt_required()
+def subscribe_v1(user_id: int):
+    user = User.get_by_id(user_id)
+    subscriber = User.get_by_id(get_jwt_identity())
+
+    if user is None:
+        return jsonify(data=None, error={"code": "not_found"}), 404
+
+    if subscriber is None:
+        return jsonify(data=None, error={"code": "not_found"}), 404
+
+    if request.method == 'POST':
+        user.subscribe(subscriber)
+        return jsonify(), 204
+    elif request.method == 'DELETE':
+        user.unsubscribe(subscriber)
+        return jsonify(), 204
+
+
 @bp.route('/api/v1/users/<int:user_id>', methods=['PUT'])
 @jwt_required()
 def edit_user_v1(user_id: int):

@@ -1,7 +1,7 @@
 from flask import current_app
 from app import db
 from app.models import Base
-from sqlalchemy import Table, ForeignKey, Column, String, Integer, DateTime, Text
+from sqlalchemy import Table, ForeignKey, Column, String, Integer, DateTime, Text, insert, delete, and_
 from sqlalchemy.orm import mapped_column, Mapped
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -14,6 +14,13 @@ oauth = Table(
     Column("user_id", Integer, ForeignKey("user.id"), nullable=False),
     Column("oauth_type", String(20), nullable=False),
     Column("oauth_id", Text, nullable=False),
+)
+
+user_subscribers = Table(
+    'user_subscriber',
+    db.metadata,
+    Column("user_id", Integer, ForeignKey("user.id"), nullable=False, primary_key=True),
+    Column("subscriber_id", Integer, ForeignKey("user.id"), nullable=False, primary_key=True),
 )
 
 class User(Base):
@@ -86,6 +93,26 @@ class User(Base):
 
     def check_password(self, password):
         return check_password_hash(self.password, password)
+
+    ################################
+
+    ###### Subscribe ######
+
+    def subscribe(self, subscriber):
+        try:
+            db.session.execute(insert(user_subscribers).values(user_id=self.id, subscriber_id=subscriber.id))
+            db.session.commit()
+        except Exception:
+            pass
+
+    def unsubscribe(self, subscriber):
+        try:
+            db.session.execute(delete(user_subscribers)
+                               .where(and_(user_subscribers.c.user_id == self.id,
+                                           user_subscribers.c.subscriber_id == subscriber.id
+                                           )))
+        except Exception:
+            pass
 
     ################################
 
