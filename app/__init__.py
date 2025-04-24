@@ -5,12 +5,14 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager
 from flask_cors import CORS
+from app.storage import Storage
 
 migrate = Migrate()
 db = SQLAlchemy()
 mail = Mail()
 jwt = JWTManager()
 cors = CORS()
+storage = Storage()
 
 
 def create_app(config):
@@ -22,6 +24,7 @@ def create_app(config):
     mail.init_app(app)
     jwt.init_app(app)
     cors.init_app(app)
+    storage.init_app(app)
 
     from app.user import bp as user_bp
     app.register_blueprint(user_bp)

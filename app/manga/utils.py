@@ -9,4 +9,4 @@ def get_external_path(path):
     if current_app.config["USE_SSL"]:
         return "https://" + current_app.config["SERVER_NAME"] + "/" + path
     else:
-        return "https://" + current_app.config["SERVER_NAME"] + "/" + path
+        return "http://" + current_app.config["SERVER_NAME"] + "/" + path

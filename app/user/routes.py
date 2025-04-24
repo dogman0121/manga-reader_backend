@@ -5,9 +5,11 @@ from flask_jwt_extended import (
     get_jwt_identity,
     jwt_required
 )
+from app import storage
 from app.user import bp
-from app.user.models import User
+from app.user.models import User, Avatar
 from app.email import send_registration_verification_mail, send_password_recovery_mail
+from PIL import Image
 
 
 @bp.route('/api/v1/users/<int:user_id>', methods=['GET'])
@@ -19,6 +21,42 @@ def get_user_v1(user_id: int):
     if user is None:
         return jsonify(data=None, error={"code": "not_found"}), 404
     return jsonify(data = user.to_dict(user=current_user)), 200
+
+@bp.route('/api/v1/users/<int:user_id>', methods=['PUT'])
+@jwt_required()
+def update_user_v1(user_id: int):
+    user = User.get_by_id(user_id)
+    current_user = User.get_by_id(get_jwt_identity())
+
+    if user.id != current_user.id:
+        return jsonify(data=None, error={"code": "forbidden"}), 403
+
+    avatar = request.files.get('avatar')
+    if avatar is not None:
+        new_file = Image.open(avatar).convert('RGB')
+        new_file.filename = avatar.filename
+        new_file.thumbnail((120, 120))
+
+        filename = storage.save(new_file, f"user/{user_id}")
+
+        if user.avatar is not None:
+            storage.delete(f"user/{user.id}/{user.avatar.filename}")
+            user.avatar.filename = filename
+        else:
+            user.avatar = Avatar(filename=filename)
+
+    login = request.form.get('login')
+    if login is not None:
+        user.login = login
+
+    about = request.form.get('about')
+    if about is not None:
+        user.about = about
+
+    user.update()
+
+    return jsonify(data=user.to_dict(current_user)), 200
+
 
 @bp.route('/api/v1/users/<int:user_id>/subscribe', methods=['POST', 'DELETE'])
 @jwt_required()

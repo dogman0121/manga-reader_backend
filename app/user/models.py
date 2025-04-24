@@ -2,7 +2,7 @@ from flask import current_app
 from app import db
 from app.models import Base
 from sqlalchemy import Table, ForeignKey, Column, String, Integer, DateTime, Text, insert, delete, select, and_
-from sqlalchemy.orm import mapped_column, Mapped
+from sqlalchemy.orm import mapped_column, Mapped, relationship
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 import jwt
@@ -23,14 +23,23 @@ user_subscribers = Table(
     Column("subscriber_id", Integer, ForeignKey("user.id"), nullable=False, primary_key=True),
 )
 
+class Avatar(Base):
+    __tablename__ = "avatar"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"), nullable=False)
+    filename: Mapped[str] = mapped_column(String(64), nullable=False)
+
 class User(Base):
     __tablename__ = "user"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     login: Mapped[str] = mapped_column(String(64), unique=True, nullable=False)
+    about: Mapped[str] = mapped_column(Text, nullable=True)
     email: Mapped[str] = mapped_column(String(320), unique=True, nullable=False)
     password: Mapped[str] = db.Column(Text, nullable=False)
     role: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
+    avatar: Mapped["Avatar"] = relationship(Avatar)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
     def __init__(self, login, email, password):
