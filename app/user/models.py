@@ -176,4 +176,5 @@ class User(Base):
             "created_at": datetime.strftime(self.created_at, "%Y-%m-%dT%H:%M:%S.%fZ"),
             "subscribed": None if user is None else self.is_subscribed(user),
             "avatar": storage.get_url(f"user/{self.id}/{self.avatar.filename}") if self.avatar else None,
+            "about": self.about,
         }
