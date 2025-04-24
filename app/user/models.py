@@ -1,5 +1,5 @@
 from flask import current_app
-from app import db
+from app import db, storage
 from app.models import Base
 from sqlalchemy import Table, ForeignKey, Column, String, Integer, DateTime, Text, insert, delete, select, and_
 from sqlalchemy.orm import mapped_column, Mapped, relationship
@@ -175,4 +175,5 @@ class User(Base):
             "role": self.role,
             "created_at": datetime.strftime(self.created_at, "%Y-%m-%dT%H:%M:%S.%fZ"),
             "subscribed": None if user is None else self.is_subscribed(user),
+            "avatar": storage.get_url(f"user/{self.id}/{self.avatar.filename}") if self.avatar else None,
         }
