@@ -1,7 +1,7 @@
 from flask import current_app
 from app import db, storage
 from app.models import Base
-from sqlalchemy import Table, ForeignKey, Column, String, Integer, DateTime, Text, insert, delete, select, and_, func
+from sqlalchemy import Table, ForeignKey, Column, String, Integer, DateTime, Text, insert, delete, select, and_, func, Select
 from sqlalchemy.orm import mapped_column, Mapped, relationship
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -132,7 +132,8 @@ class User(Base):
         ))).scalar() is not None
 
     def get_subscribers(self, page=1, per_page=20):
-        return db.session.execute(select(user_subscribers)
+        return db.session.execute(Select(User)
+            .join(user_subscribers, onclause=User.id == user_subscribers.c.subscriber_id)
             .where(self.id == user_subscribers.c.user_id)
             .offset((page-1) * per_page).limit(per_page)
         ).scalars()
@@ -143,7 +144,8 @@ class User(Base):
         )).scalar()
 
     def get_subscribed(self, page=1, per_page=20):
-        return db.session.execute(select(user_subscribers)
+        return db.session.execute(Select(User)
+            .join(user_subscribers, onclause=User.id == user_subscribers.c.user_id)
             .where(self.id == user_subscribers.c.subscriber_id)
             .offset((page-1) * per_page).limit(per_page)
         )
