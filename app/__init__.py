@@ -3,14 +3,13 @@ from flask_admin import Admin
 from flask_mail import Mail
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
-from flask_jwt_extended import JWTManager
+from app.jwt import jwt
 from flask_cors import CORS
 from app.storage import Storage
 
 migrate = Migrate()
 db = SQLAlchemy()
 mail = Mail()
-jwt = JWTManager()
 cors = CORS()
 storage = Storage()
 
