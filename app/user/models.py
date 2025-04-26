@@ -140,7 +140,7 @@ class User(Base):
 
     def get_subscribers_count(self):
         return db.session.execute(select(func.count(user_subscribers.c.user_id))
-            .where(self.id == user_subscribers.c.subscriber_id)
+            .where(self.id == user_subscribers.c.user_id)
         ).scalar()
 
     def get_subscribed(self, page=1, per_page=20):
