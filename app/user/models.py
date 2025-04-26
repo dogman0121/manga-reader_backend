@@ -200,4 +200,5 @@ class User(Base):
             "subscribed": None if user is None else self.is_subscribed(user),
             "avatar": storage.get_url(f"user/{self.id}/{self.avatar.filename}") if self.avatar else None,
             "about": self.about,
+            "subscribers_count": self.get_subscribers_count(),
         }
