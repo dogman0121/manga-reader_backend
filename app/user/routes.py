@@ -80,6 +80,22 @@ def subscribe_v1(user_id: int):
         user.unsubscribe(subscriber)
         return jsonify({"error": None, "data": None}), 200
 
+@bp.route('/api/v1/users/<int:user_id>/subscribers', methods=['GET'])
+@jwt_required(optional=True)
+def get_subscribers_v1(user_id: int):
+    user = User.get_by_id(user_id)
+
+    current_user_id = get_jwt_identity()
+    current_user = User.get_by_id(current_user_id) if current_user_id else None
+
+    page = request.args.get('page', 1, type=int)
+
+    if user is None:
+        return jsonify(data=None, error={"code": "not_found"}), 404
+
+    subscribers = user.get_subscribers(page=page, per_page=20)
+
+    return jsonify(data=[i.to_dict(current_user) for i in subscribers]), 200
 
 @bp.route('/api/v1/users/<int:user_id>', methods=['PUT'])
 @jwt_required()

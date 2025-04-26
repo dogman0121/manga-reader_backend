@@ -1,7 +1,7 @@
 from flask import current_app
 from app import db, storage
 from app.models import Base
-from sqlalchemy import Table, ForeignKey, Column, String, Integer, DateTime, Text, insert, delete, select, and_
+from sqlalchemy import Table, ForeignKey, Column, String, Integer, DateTime, Text, insert, delete, select, and_, func
 from sqlalchemy.orm import mapped_column, Mapped, relationship
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -131,6 +131,27 @@ class User(Base):
                 user_subscribers.c.subscriber_id == subscriber.id
         ))).scalar() is not None
 
+    def get_subscribers(self, page=1, per_page=20):
+        return db.session.execute(select(user_subscribers)
+            .where(self.id == user_subscribers.c.user_id)
+            .offset((page-1) * per_page).limit(per_page)
+        ).scalars()
+
+    def get_subscribers_count(self):
+        return db.session.execute(select(func.count(user_subscribers)
+            .where(user_subscribers.c.subscriber_id == self.id)
+        )).scalar()
+
+    def get_subscribed(self, page=1, per_page=20):
+        return db.session.execute(select(user_subscribers)
+            .where(self.id == user_subscribers.c.subscriber_id)
+            .offset((page-1) * per_page).limit(per_page)
+        )
+
+    def get_subscriber_count(self):
+        return db.session.execute(select(func.count(user_subscribers)
+            .where(user_subscribers.c.subscriber_id == self.id)
+        ))
     ################################
 
     ###### Getting and verifying tokens ######
