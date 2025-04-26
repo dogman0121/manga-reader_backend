@@ -139,9 +139,9 @@ class User(Base):
         ).scalars()
 
     def get_subscribers_count(self):
-        return db.session.execute(select(func.count(user_subscribers)
-            .where(user_subscribers.c.subscriber_id == self.id)
-        )).scalar()
+        return db.session.execute(select(func.count(user_subscribers.c.user_id))
+            .where(self.id == user_subscribers.c.subscriber_id)
+        ).scalar()
 
     def get_subscribed(self, page=1, per_page=20):
         return db.session.execute(Select(User)
@@ -151,9 +151,9 @@ class User(Base):
         )
 
     def get_subscriber_count(self):
-        return db.session.execute(select(func.count(user_subscribers)
-            .where(user_subscribers.c.subscriber_id == self.id)
-        ))
+        return db.session.execute(select(func.count(user_subscribers.c.user_id))
+            .where(self.id == user_subscribers.c.subscriber_id)
+        )
     ################################
 
     ###### Getting and verifying tokens ######
