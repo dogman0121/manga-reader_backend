@@ -16,6 +16,7 @@ def update_data(chapter: Chapter):
     tome = request.form.get('tome', type=int)
     chapter_number = request.form.get('chapter', type=int)
     team_id = request.form.get('team', type=int)
+    manga_id = request.form.get('manga', type=int)
 
     if chapter_number is None:
         return respond(error="bad_request", detail={"chapter": "Chapter is required"})
@@ -24,6 +25,7 @@ def update_data(chapter: Chapter):
     chapter.tome = tome
     chapter.chapter = chapter_number
     chapter.team_id = team_id
+    chapter.manga_id = manga_id
 
 def update_media(chapter: Chapter):
     new_pages = request.files.getlist('new_page')
