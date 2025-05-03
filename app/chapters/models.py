@@ -30,6 +30,7 @@ class Chapter(Base):
     team_id: Mapped[int] = mapped_column(ForeignKey("team.id"), nullable=True)
     creator_id: Mapped[int] = mapped_column(ForeignKey("user.id"), nullable=False)
     created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow)
+    manga_id: Mapped[int] = mapped_column(ForeignKey("manga.id"), nullable=False)
 
     pages: Mapped[list["Page"]] = relationship()
     team: Mapped["Team"] = relationship()
