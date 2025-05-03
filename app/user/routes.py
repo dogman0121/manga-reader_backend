@@ -120,6 +120,9 @@ def get_current_user_v1():
     user = get_jwt_identity()
     return jsonify(data=User.get_by_id(user).to_dict())
 
+@bp.route('/api/v1/users/me/affiliate', methods=['GET'])
+def affiliate_user_v1(user_id: int):
+    pass
 
 @bp.route('/api/v1/users/register', methods=['POST'])
 def register_user_v1():

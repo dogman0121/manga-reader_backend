@@ -1,7 +1,15 @@
+from sqlalchemy.orm import Mapped, mapped_column
+
 from app import db
+
+from datetime import datetime
 
 class Base(db.Model):
     __abstract__ = True
+
+    @classmethod
+    def get(cls, entity_id):
+        return db.session.get(cls, entity_id)
 
     def add(self):
         db.session.add(self)
@@ -13,3 +21,11 @@ class Base(db.Model):
     def delete(self):
         db.session.delete(self)
         db.session.commit()
+
+
+class File:
+    __abstract__ = True
+
+    uuid: Mapped[str] = mapped_column(nullable=False, primary_key=True)
+    ext: Mapped[str] = mapped_column(nullable=False)
+    uploaded_at: Mapped[datetime] = mapped_column(nullable=False, default=lambda x: datetime.now())

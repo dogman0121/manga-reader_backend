@@ -40,6 +40,12 @@ def create_app(config):
     from app.comment import bp as comment_bp
     app.register_blueprint(comment_bp)
 
+    from app.chapters import bp as chapters_bp
+    app.register_blueprint(chapters_bp, url_prefix='/api/v1/chapters')
+
+    from app.teams import bp as teams_bp
+    app.register_blueprint(teams_bp, url_prefix='/api/v1/teams')
+
     from app.admin import admin
     admin.init_app(app)
 

@@ -12,23 +12,26 @@ class Storage:
         self.app = app
         self.upload_folder = app.config['UPLOAD_FOLDER']
 
-    def save(self, file, relative_path):
+    def save(self, file, relative_path, ext=None):
         if not os.path.exists(os.path.join(self.upload_folder, relative_path)):
             os.makedirs(os.path.join(self.upload_folder, relative_path))
 
-        name, ext = os.path.splitext(file.filename)
+        if not ext:
+            name, ext = os.path.splitext(file.filename)
 
-        filename = str(uuid.uuid4()) + ext
+        identifier = str(uuid.uuid4())
+        filename = identifier + ext
 
         file_path = os.path.join(self.upload_folder, relative_path, filename)
 
         file.save(file_path)
-        return filename
+        return identifier
 
     def delete(self, relative_path):
         file_path = os.path.join(self.upload_folder, relative_path)
         if os.path.exists(file_path):
             os.remove(file_path)
 
+    @staticmethod
     def get_url(self, relative_path):
         return "https://kanwoo.ru/uploads/{}".format(relative_path)
