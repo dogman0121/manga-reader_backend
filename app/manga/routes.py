@@ -7,10 +7,9 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from app import db
 
 from app.user.models import User
-from app.manga import bp
-from app.manga.models import Manga, NameTranslation, Genre, Adult, Type, Status, Poster
+from . import bp
+from .models import Manga, NameTranslation, Genre, Adult, Type, Status, Poster, Rating
 from app.person.models import Person
-from app.manga.models import Rating
 
 from app.manga.utils import get_uuid4_filename
 

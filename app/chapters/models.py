@@ -27,13 +27,12 @@ class Chapter(Base):
     name: Mapped[str] = mapped_column(nullable=True)
     tome: Mapped[int] = mapped_column(nullable=True)
     chapter: Mapped[int] = mapped_column(nullable=False)
-    team_id: Mapped[int] = mapped_column(ForeignKey("team.id"), nullable=True)
     creator_id: Mapped[int] = mapped_column(ForeignKey("user.id"), nullable=False)
     created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow)
-    manga_id: Mapped[int] = mapped_column(ForeignKey("manga.id"), nullable=False)
+    translation_id: Mapped[int] = mapped_column(ForeignKey("translation.id"), nullable=True)
 
     pages: Mapped[list["Page"]] = relationship()
-    team: Mapped["Team"] = relationship()
+    translation: Mapped["Translation"] = relationship()
     creator: Mapped["User"] = relationship()
 
     def to_dict(self):
@@ -42,7 +41,6 @@ class Chapter(Base):
             "name": self.name,
             "tome": self.tome,
             "chapter": self.chapter,
-            "team": self.team.to_dict() if self.team else None,
             "creator": self.creator.to_dict() if self.creator else None,
             "pages": [i.to_dict() for i in self.pages]
         }

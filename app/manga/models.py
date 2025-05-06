@@ -123,7 +123,7 @@ class Poster(Base):
     filenames: Mapped[str] = mapped_column(JSONB, nullable=False)
     order: Mapped[int] = mapped_column(Integer, nullable=False)
 
-    manga = relationship("Manga", backref="posters")
+    manga = relationship("Manga", back_populates="posters")
 
 
 def get_poster_dict(manga_id: int, poster: Poster) -> dict:
@@ -142,6 +142,39 @@ class Save(Base):
     manga_id: Mapped[int] = mapped_column(ForeignKey("manga.id"), primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("user.id"), primary_key=True)
 
+class Translation(Base):
+    __tablename__ = "translation"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    manga_id: Mapped[int] = mapped_column(ForeignKey("manga.id"))
+    team_id: Mapped[int] = mapped_column(ForeignKey("team.id"), nullable=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("user.id"), nullable=True)
+
+    chapters: Mapped[list["Chapter"]] = relationship(uselist=True)
+    team: Mapped["Team"] = relationship("Team")
+    user: Mapped["User"] = relationship("User")
+
+    @hybrid_property
+    def chapters_count(self):
+        return db.session.execute(Select(func.count("Chapter.id")).where("Chapter.translator_id" == self.manga_id)).scalar()
+
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "translator_type": "team" if self.team_id else "user",
+            "translator": self.team.to_dict() if self.team_id else self.user.to_dict(),
+            "chapters_count": self.chapters_count,
+        }
+
+    @staticmethod
+    def get_by_team(manga_id, team_id):
+        return Translation.query.filter_by(manga_id=manga_id, team_id=team_id).scalar()
+
+    @staticmethod
+    def get_by_user(manga_id, user_id):
+        return Translation.query.filter_by(manga_id=manga_id, user_id=user_id).scalar()
+
+
 class Manga(Base):
     page_size = 20
 
@@ -149,36 +182,36 @@ class Manga(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True, nullable=False, unique=True)
     name: Mapped[str] = mapped_column(Text, nullable=False)
-    name_translations: Mapped[list["NameTranslation"]] = relationship(cascade="save-update, merge, delete, delete-orphan")
     description: Mapped[str] = mapped_column(Text, nullable=True)
     type_id: Mapped[Optional[int]] = mapped_column(ForeignKey("type.id"), nullable=True)
-    type: Mapped["Type"] = relationship()
     status_id: Mapped[Optional[int]] = mapped_column(ForeignKey("status.id"), nullable=True)
-    status: Mapped["Status"] = relationship()
     main_poster_number: Mapped[Optional[int]] = mapped_column(nullable=True)
+    background: Mapped[str] = mapped_column(nullable=True)
+    year: Mapped[Optional[int]] = mapped_column(nullable=True)
+    views: Mapped[Optional[int]] = mapped_column(default=0)
+    adult_id: Mapped[Optional[int]] = mapped_column(ForeignKey("adult.id"), nullable=True)
+    creator_id: Mapped[int] = mapped_column(ForeignKey("user.id"), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda x: datetime.utcnow(), nullable=True)
+    verified: Mapped[bool] = mapped_column(default=False)
+
+    name_translations: Mapped[list["NameTranslation"]] = relationship(
+        cascade="save-update, merge, delete, delete-orphan")
+    type: Mapped["Type"] = relationship()
+    status: Mapped["Status"] = relationship()
     main_poster: Mapped["Poster"] = relationship("Poster",
         primaryjoin="and_(Manga.main_poster_number == Poster.order, Manga.id == Poster.manga_id)",
     )
     posters: Mapped[list["Poster"]] = relationship("Poster",
                                                    cascade="save-update, merge, delete, delete-orphan",
                                                    back_populates="manga")
-    background: Mapped[str] = mapped_column(nullable=True)
-    year: Mapped[Optional[int]] = mapped_column(nullable=True)
-    views: Mapped[Optional[int]] = mapped_column(default=0)
-    adult_id: Mapped[Optional[int]] = mapped_column(ForeignKey("adult.id"), nullable=True)
     adult: Mapped["Adult"] = relationship()
     genres: Mapped[list["Genre"]] = relationship("Genre", secondary="manga_genre")
     authors: Mapped[list["Person"]] = relationship(secondary="manga_author")
     artists: Mapped[list["Person"]] = relationship(secondary="manga_artist")
     publishers: Mapped[list["Person"]] = relationship(secondary="manga_publisher")
-    creator_id: Mapped[int] = mapped_column(ForeignKey("user.id"), nullable=True)
     creator: Mapped["User"] = relationship("User")
-    # chapters: Mapped[list["Chapter"]] = relationship(uselist=True, back_populates="manga")
-    # translators: Mapped[list["Team"]] = relationship(uselist=True, secondary="manga_translator",
-    #                                                  back_populates="mangas")
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda x: datetime.utcnow(), nullable=True)
-    verified: Mapped[bool] = mapped_column(default=False)
     comments: Mapped["Comment"] = relationship("Comment", secondary="manga_comment", back_populates="manga")
+    translations: Mapped[list["Translation"]] = relationship("Translation", uselist=True)
 
     @staticmethod
     def get(manga_id):
@@ -334,5 +367,6 @@ class Manga(Base):
             "description": self.description,
             "genres": [i.to_dict() for i in self.genres],
             "user_rating": Rating.get(user.id, self.id).rating if user and Rating.get(user.id, self.id) else None,
+            "translations": [i.to_dict() for i in self.translations],
         }
 

@@ -3,13 +3,13 @@ import json
 from flask import request, abort
 from flask_jwt_extended import jwt_required
 
-from app.user.utils import get_current_user_or_401
+from app.user.utils import get_current_user_or_401, get_current_user
 from app.utils import respond
 from app import storage
 
 from . import bp
 from .models import Chapter, Page
-from ..manga.models import Manga
+from app.manga.models import Manga, Translation
 
 
 def update_data(chapter: Chapter):
@@ -31,6 +31,21 @@ def update_data(chapter: Chapter):
         abort(respond(error="bad_request", detail={"manga": "Manga not found"}, status_code=400))
 
     chapter.manga_id = manga_id
+
+    if team_id:
+        translation = Translation.get_by_team(manga_id=manga_id, team_id=team_id)
+
+        if translation is None:
+            translation = Translation(manga_id=manga_id, team_id=team_id)
+            translation.add()
+    else:
+        translation = Translation.get_by_user(manga_id=manga_id, user_id=chapter.creator_id)
+
+        if translation is None:
+            translation = Translation(manga_id=manga_id, user_id=chapter.creator_id)
+            translation.add()
+
+    chapter.translation_id = translation.id
 
 def update_media(chapter: Chapter):
     new_pages = request.files.getlist('new_page')
@@ -75,7 +90,7 @@ def index():
 def post_chapter():
     current_user = get_current_user_or_401()
 
-    chapter = Chapter(creator=current_user)
+    chapter = Chapter(creator_id=current_user.id, creator=current_user)
     update_data(chapter)
 
     chapter.add()
@@ -94,11 +109,15 @@ def put_chapter(chapter_id):
 
     update_media(chapter)
 
-    return respond(data=chapter.to_json()), 200
+    chapter.update()
+
+    return respond(data=chapter.to_dict()), 200
 
 @bp.route('/<int:chapter_id>', methods=['GET'])
 def get_chapter(chapter_id):
     chapter = Chapter.get(chapter_id)
 
+    if chapter is None:
+        return respond(error="not_found"), 404
     return respond(data=chapter.to_dict()), 200
 
