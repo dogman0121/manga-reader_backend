@@ -150,7 +150,7 @@ class Translation(Base):
     team_id: Mapped[int] = mapped_column(ForeignKey("team.id"), nullable=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("user.id"), nullable=True)
 
-    chapters: Mapped[list["Chapter"]] = relationship(uselist=True)
+    chapters: Mapped[list["Chapter"]] = relationship(uselist=True, lazy="dynamic")
     team: Mapped["Team"] = relationship("Team")
     user: Mapped["User"] = relationship("User")
 
