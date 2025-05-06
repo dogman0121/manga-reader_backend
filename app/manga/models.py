@@ -156,7 +156,7 @@ class Translation(Base):
 
     @hybrid_property
     def chapters_count(self):
-        return db.session.execute(Select(func.count("Chapter.id")).where("Chapter.translator_id" == self.manga_id)).scalar()
+        return self.chapters.count()
 
     def to_dict(self) -> dict:
         return {
