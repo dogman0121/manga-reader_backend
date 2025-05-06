@@ -65,7 +65,7 @@ def update_media(chapter: Chapter):
 def index():
     return "Hello, World!", 200
 
-@bp.route('/', methods=['POST'])
+@bp.route('/', methods=['POST'], strict_slashes=False)
 @jwt_required()
 def post_chapter():
     current_user = get_current_user_or_401()
