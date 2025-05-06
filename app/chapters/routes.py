@@ -83,7 +83,11 @@ def update_media(chapter: Chapter):
 
 @bp.route('', methods=['GET'], strict_slashes=False)
 def index():
-    return "Hello, World!", 200
+    translation_id = request.args.get("translation", type=int)
+
+    if translation_id:
+        translation = Translation.get(translation_id)
+        return respond(data=[i.to_dict() for i in translation.chapters])
 
 @bp.route('', methods=['POST'], strict_slashes=False)
 @jwt_required()
