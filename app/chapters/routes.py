@@ -1,6 +1,6 @@
 import json
 
-from flask import request
+from flask import request, abort
 from flask_jwt_extended import jwt_required
 
 from app.user.utils import get_current_user_or_401
@@ -9,6 +9,7 @@ from app import storage
 
 from . import bp
 from .models import Chapter, Page
+from ..manga.models import Manga
 
 
 def update_data(chapter: Chapter):
@@ -19,12 +20,16 @@ def update_data(chapter: Chapter):
     manga_id = request.form.get('manga', type=int)
 
     if chapter_number is None:
-        return respond(error="bad_request", detail={"chapter": "Chapter is required"})
+        abort(respond(error="bad_request", detail={"chapter": "Chapter is required"}), status_code=400)
 
     chapter.name = name
     chapter.tome = tome
     chapter.chapter = chapter_number
     chapter.team_id = team_id
+
+    if Manga.get(manga_id) is None:
+        abort(respond(error="bad_request", detail={"manga": "Manga not found"}, status_code=400))
+
     chapter.manga_id = manga_id
 
 def update_media(chapter: Chapter):
@@ -40,8 +45,8 @@ def update_media(chapter: Chapter):
     # update existing pages
     for page in chapter.pages:
         # delete unused pages
-        if page.uuid not in pages_order:
-            storage.delete(f"chapter/{chapter.id}/{page.uuid}.{page.ext}")
+        if page.uuid + page.ext not in pages_order:
+            storage.delete(f"chapter/{chapter.id}/{page.uuid}{page.ext}")
             page.delete()
 
         new_order = pages_order.index(page.uuid)
@@ -56,16 +61,16 @@ def update_media(chapter: Chapter):
 
             uuid = storage.save(page, f"chapter/{chapter.id}", ext=".webp")
 
-            page = Page(uuid=uuid, ext=".webp", order=order)
+            page = Page(uuid=uuid, chapter_id=chapter.id, ext=".webp", order=order)
             page.add()
         except ValueError:
             continue
 
-@bp.route('/', methods=['GET'])
+@bp.route('', methods=['GET'], strict_slashes=False)
 def index():
     return "Hello, World!", 200
 
-@bp.route('/', methods=['POST'], strict_slashes=False)
+@bp.route('', methods=['POST'], strict_slashes=False)
 @jwt_required()
 def post_chapter():
     current_user = get_current_user_or_401()

@@ -1,16 +1,18 @@
 from flask import jsonify
 
-def respond(data=None, error=None, detail=None):
+def respond(data=None, error=None, detail=None, status_code=200):
     if error:
-        response = {
+        response = jsonify({
             "error": {
                 "code": error,
                 "detail": detail,
             }
-        }
+        })
     else:
-        response = {
+        response = jsonify({
             "data": data,
-        }
+        })
 
-    return jsonify(response)
+    response.status_code = status_code
+
+    return response

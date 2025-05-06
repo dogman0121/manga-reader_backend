@@ -123,6 +123,8 @@ class Poster(Base):
     filenames: Mapped[str] = mapped_column(JSONB, nullable=False)
     order: Mapped[int] = mapped_column(Integer, nullable=False)
 
+    manga = relationship("Manga", backref="posters")
+
 
 def get_poster_dict(manga_id: int, poster: Poster) -> dict:
 
@@ -157,7 +159,9 @@ class Manga(Base):
     main_poster: Mapped["Poster"] = relationship("Poster",
         primaryjoin="and_(Manga.main_poster_number == Poster.order, Manga.id == Poster.manga_id)",
     )
-    posters: Mapped[list["Poster"]] = relationship(cascade="save-update, merge, delete, delete-orphan")
+    posters: Mapped[list["Poster"]] = relationship("Poster",
+                                                   cascade="save-update, merge, delete, delete-orphan",
+                                                   back_populates="manga")
     background: Mapped[str] = mapped_column(nullable=True)
     year: Mapped[Optional[int]] = mapped_column(nullable=True)
     views: Mapped[Optional[int]] = mapped_column(default=0)

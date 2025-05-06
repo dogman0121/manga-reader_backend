@@ -16,7 +16,7 @@ class Page(Base, File):
         return {
             "uuid": self.uuid,
             "filename": self.uuid + "." + self.ext,
-            "link": storage.get_url(f"/chapter/{self.chapter_id}/{self.uuid}.{self.ext}"),
+            "link": storage.get_url(f"chapter/{self.chapter_id}/{self.uuid}{self.ext}"),
             "order": self.order,
         }
 

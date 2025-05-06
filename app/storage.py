@@ -33,5 +33,5 @@ class Storage:
             os.remove(file_path)
 
     @staticmethod
-    def get_url(self, relative_path):
+    def get_url(relative_path):
         return "https://kanwoo.ru/uploads/{}".format(relative_path)

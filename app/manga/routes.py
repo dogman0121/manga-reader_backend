@@ -71,7 +71,7 @@ background_size = (1600, 900)
 
 def create_upload_folder(manga_id) -> None:
     if not os.path.exists(f'app/static/manga/{manga_id}'):
-        os.mkdir(f'app/static/manga/{manga_id}')
+        os.makedirs(f'app/static/manga/{manga_id}')
 
 def update_media(manga: Manga) -> None:
     create_upload_folder(manga.id)
