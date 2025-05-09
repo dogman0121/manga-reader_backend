@@ -265,22 +265,22 @@ class Manga(Base):
 
     @hybrid_method
     def validate_rating(self, rating_from: int, rating_to: int):
-        rating_sum, rating_len = self.rating
+        rating, rating_sum, rating_len = self.rating
         if rating_len == 0:
             return True if rating_from == 0 else False
-        rating = rating_sum / rating_len
         return and_(rating_from <= rating, rating <= rating_to)
 
     @staticmethod
-    def get_with_filters(types: list[int] = (), statuses: list[int] = (), genres: list[int] = (),
+    def get_with_filters(search="", types: list[int] = (), statuses: list[int] = (), genres: list[int] = (),
                          year_from: int = 0, year_to: int = 10000, rating_from: int = 0, rating_to: int = 10,
-                         adult: bool = False, sortings: int = 1, page: int = 1):
+                         adult: bool = False, sortings: int = 1, page: int = 1, **kwargs):
         query = (Select(Manga).filter(
             Manga.validate_types(types),
             Manga.validate_statuses(statuses),
             Manga.validate_year(year_from, year_to),
             Manga.validate_genres(genres),
-            Manga.validate_rating(rating_from, rating_to)
+            Manga.validate_rating(rating_from, rating_to),
+            func.lower(Manga.name).like(f"%{search}%")
         )
             .join(Save, Save.manga_id == Manga.id, isouter=True)
             .join(Rating, Rating.manga_id == Manga.id, isouter=True)
