@@ -39,8 +39,11 @@ class User(Base):
     email: Mapped[str] = mapped_column(String(320), unique=True, nullable=False)
     password: Mapped[str] = db.Column(Text, nullable=False)
     role: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
-    avatar: Mapped["Avatar"] = relationship(Avatar)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    avatar: Mapped["Avatar"] = relationship(Avatar)
+    notifications: Mapped[list["Notification"]] = relationship(back_populates="user", uselist=True, foreign_keys="Notification.user_id")
+
 
     def __init__(self, login, email, password):
         self.set_login(login)

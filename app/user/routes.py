@@ -8,6 +8,7 @@ from flask_jwt_extended import (
 from app import storage
 from app.user import bp
 from app.user.models import User, Avatar
+from app.notifications.models import Notification
 from app.email import send_registration_verification_mail, send_password_recovery_mail
 from PIL import Image
 
@@ -75,6 +76,13 @@ def subscribe_v1(user_id: int):
 
     if request.method == 'POST':
         user.subscribe(subscriber)
+        notification = Notification(
+            type="user",
+            action="subscribe",
+            user=user,
+            actor=subscriber
+        )
+        notification.add()
         return jsonify({"error": None, "data": None}), 200
     elif request.method == 'DELETE':
         user.unsubscribe(subscriber)

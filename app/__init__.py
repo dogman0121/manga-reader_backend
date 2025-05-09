@@ -46,6 +46,9 @@ def create_app(config):
     from app.teams import bp as teams_bp
     app.register_blueprint(teams_bp, url_prefix='/api/v1/teams')
 
+    from app.notifications import bp as notifications_bp
+    app.register_blueprint(notifications_bp, url_prefix='/api/v1/notifications')
+
     from app.admin import admin
     admin.init_app(app)
 
