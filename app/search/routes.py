@@ -3,6 +3,8 @@ from flask import jsonify, request
 from app.person.models import Person
 from app.search import bp
 from app.manga.models import Manga
+from app.utils import respond
+
 
 def parse_manga_filters():
     types = request.args.getlist("type", type=int)
@@ -24,10 +26,10 @@ def search_v1():
     section = request.args.get('section')
 
     if section == "manga":
-        return jsonify([ i.to_dict() for i in Manga.get_with_filters(query, **parse_manga_filters()) ])
+        return respond(data=[ i.to_dict() for i in Manga.get_with_filters(query, **parse_manga_filters()) ])
 
     if section == "person":
-        return jsonify([i.to_dict() for i in Person.search(query)])
+        return respond(data=[i.to_dict() for i in Person.search(query)])
 
     return jsonify(
         [{
