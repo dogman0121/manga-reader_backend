@@ -2,7 +2,7 @@ import os
 
 from sqlalchemy.ext.hybrid import hybrid_property, hybrid_method
 
-from app import db
+from app import db, storage
 from app.models import Base
 from datetime import datetime
 from sqlalchemy import Integer, Text, ForeignKey, DateTime, Column, Table, String, Select, func, desc, and_
@@ -130,10 +130,10 @@ def get_poster_dict(manga_id: int, poster: Poster) -> dict:
 
     return {
         "uuid": poster.uuid,
-        "thumbnail": f"/uploads/manga/{manga_id}/{poster.filenames['thumbnail']}",
-        "small": f"/uploads/manga/{manga_id}/{poster.filenames['small']}",
-        "medium": f"/uploads/manga/{manga_id}/{poster.filenames['medium']}",
-        "large": f"/uploads/manga/{manga_id}/{poster.filenames['large']}",
+        "thumbnail": storage.get_url(f"manga/{manga_id}/{poster.filenames['thumbnail']}"),
+        "small": storage.get_url(f"manga/{manga_id}/{poster.filenames['small']}"),
+        "medium": storage.get_url(f"manga/{manga_id}/{poster.filenames['medium']}"),
+        "large": storage.get_url(f"manga/{manga_id}/{poster.filenames['large']}"),
     }
 
 class Save(Base):
