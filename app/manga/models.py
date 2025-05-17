@@ -247,7 +247,7 @@ class Manga(Base):
         if not status_ids:
             return True
 
-        return self.status.id in status_ids
+        return self.status_id.in_(status_ids)
 
     @hybrid_method
     def validate_genres(self, genres: list[int]):
