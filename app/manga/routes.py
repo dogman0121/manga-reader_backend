@@ -15,6 +15,9 @@ from app.manga.utils import get_uuid4_filename
 
 from PIL import Image
 
+from ..utils import respond
+
+
 def validate_manga():
     if not request.form.get("name"):
         return False, "Name is empty"
@@ -149,12 +152,12 @@ def get_manga_v1(manga_id):
     manga = Manga.get(manga_id)
 
     if manga is None:
-        return jsonify(msg="Not found"), 404
+        return respond(error="Not found"), 404
 
     manga.views += 1
     manga.update()
 
-    return jsonify(manga.to_dict(user=user, posters=True))
+    return respond(data=manga.to_dict(user=user, posters=True))
 
 
 @bp.route("/api/v1/manga/add", methods=["POST"])
@@ -162,7 +165,7 @@ def get_manga_v1(manga_id):
 def add_manga_v1():
     result, message = validate_manga()
     if not result:
-        return jsonify(msg=message), 400
+        return respond(error="bad_request"), 400
 
 
     manga = Manga()
@@ -174,7 +177,7 @@ def add_manga_v1():
     update_media(manga)
     manga.update()
 
-    return jsonify(manga.to_dict(User.get_by_id(get_jwt_identity()))), 201
+    return respond(data=manga.to_dict(User.get_by_id(get_jwt_identity()))), 201
 
 
 @bp.route("/api/v1/manga/<int:manga_id>/edit", methods=["PUT"])
@@ -184,17 +187,17 @@ def edit_manga_v1(manga_id: int) -> [str, int]:
     user = User.get_by_id(get_jwt_identity())
 
     if manga is None:
-        return jsonify(msg="Not found"), 404
+        return respond(error="not_found"), 404
 
     if not manga.can_edit(user=user):
-        return jsonify(msg="Not allowed"), 403
+        return respond(error="forbidden"), 403
 
     update_data(manga)
     update_media(manga)
 
     manga.update()
 
-    return jsonify(manga.to_dict(user=User.get_by_id(get_jwt_identity()), posters=True)), 200
+    return respond(data=manga.to_dict(user=User.get_by_id(get_jwt_identity()), posters=True)), 200
 
 
 @bp.route("/api/v1/manga/<int:manga_id>/delete", methods=["DELETE"])
@@ -209,16 +212,16 @@ def add_rating_v1(manga_id) -> [str, int]:
     rating = request.json.get("rating")
 
     if rating is None:
-        return jsonify(error={"code": "bad_request"}), 400
+        return respond(error="bad_request"), 400
 
     try:
         rating_int = int(rating)
     except ValueError:
-        return jsonify(error={"code": "bad_request"}), 400
+        return respond(error="bad_request"), 400
 
     manga = Manga.get(manga_id)
     if manga is None:
-        return jsonify(error={"code": "not_found"}), 404
+        return respond(error="not_found"), 404
 
     user = User.get_by_id(get_jwt_identity())
     if Rating.get(user.id, manga_id) is None:
@@ -229,7 +232,7 @@ def add_rating_v1(manga_id) -> [str, int]:
         else:
             manga.update_rating(user, rating_int)
 
-    return jsonify(data=None, error=None), 201
+    return respond(data=None, error=None), 201
 
 
 @bp.route("/api/v1/manga/<int:manga_id>/ratings", methods=["DELETE"])
@@ -238,9 +241,9 @@ def delete_rating_v1(manga_id) -> [str, int]:
     manga = Manga.get(manga_id)
 
     if manga is None:
-        return jsonify(error={"code": "not_found"}), 404
+        return respond("not_found"), 404
 
     user = User.get_by_id(get_jwt_identity())
     manga.remove_rating(user)
 
-    return jsonify(data=None, error=None), 200
+    return respond(data=None, error=None), 200
