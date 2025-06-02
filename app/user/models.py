@@ -171,7 +171,7 @@ class User(Base):
     def verify_recovery_token(token):
         try:
             user_id = jwt.decode(token, current_app.config["SECRET_KEY"], algorithms=["HS256"])["id"]
-            return User.query.get(user_id)
+            return User.query.get(user_id, )
         except Exception:
             return None
 

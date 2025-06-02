@@ -123,7 +123,7 @@ class Poster(Base):
     filenames: Mapped[str] = mapped_column(JSONB, nullable=False)
     order: Mapped[int] = mapped_column(Integer, nullable=False)
 
-    manga = relationship("Manga", back_populates="posters")
+    manga: Mapped["Manga"] = relationship(back_populates="posters")
 
 
 def get_poster_dict(manga_id: int, poster: Poster) -> dict:
@@ -150,7 +150,7 @@ class Translation(Base):
     team_id: Mapped[int] = mapped_column(ForeignKey("team.id"), nullable=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("user.id"), nullable=True)
 
-    chapters: Mapped[list["Chapter"]] = relationship(uselist=True, lazy="dynamic")
+    chapters: Mapped[list["Chapter"]] = relationship(uselist=True, lazy="dynamic", back_populates="translation")
     team: Mapped["Team"] = relationship("Team")
     user: Mapped["User"] = relationship("User")
 
@@ -198,12 +198,11 @@ class Manga(Base):
         cascade="save-update, merge, delete, delete-orphan")
     type: Mapped["Type"] = relationship()
     status: Mapped["Status"] = relationship()
-    main_poster: Mapped["Poster"] = relationship("Poster",
+    main_poster: Mapped["Poster"] = relationship(
         primaryjoin="and_(Manga.main_poster_number == Poster.order, Manga.id == Poster.manga_id)",
+        back_populates="manga",
     )
-    posters: Mapped[list["Poster"]] = relationship("Poster",
-                                                   cascade="save-update, merge, delete, delete-orphan",
-                                                   back_populates="manga")
+    posters: Mapped[list["Poster"]] = relationship(back_populates="manga")
     adult: Mapped["Adult"] = relationship()
     genres: Mapped[list["Genre"]] = relationship("Genre", secondary="manga_genre")
     authors: Mapped[list["Person"]] = relationship(secondary="manga_author")
@@ -233,6 +232,14 @@ class Manga(Base):
     @hybrid_property
     def saves_count(self):
         return db.session.execute(Select(func.count(Save.manga_id)).where(Save.manga_id == self.id)).scalar()
+
+    @hybrid_property
+    def main_poster(self):
+        return (
+            db.session.query(Poster)
+            .filter(Poster.order == self.main_poster_number, Poster.manga_id == self.id)
+            .scalar()
+        )
 
     # ----- Filters -----
     @hybrid_method

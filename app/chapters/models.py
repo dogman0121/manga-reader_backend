@@ -1,7 +1,8 @@
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.ext.hybrid import hybrid_property
 
-from app import storage
+from app import storage, db
 from app.models import Base, File
 
 from datetime import datetime
@@ -32,8 +33,24 @@ class Chapter(Base):
     translation_id: Mapped[int] = mapped_column(ForeignKey("translation.id"), nullable=True)
 
     pages: Mapped[list["Page"]] = relationship()
-    translation: Mapped["Translation"] = relationship()
+    translation: Mapped["Translation"] = relationship(back_populates="chapters")
     creator: Mapped["User"] = relationship()
+
+    @hybrid_property
+    def next(self):
+        return (
+            db.session.query(Chapter)
+            .filter_by(chapter=self.chapter+1, translation_id=self.translation_id)
+            .scalar()
+        )
+
+    @hybrid_property
+    def previous(self):
+        return (
+            db.session.query(Chapter)
+            .filter_by(chapter=self.chapter - 1, translation_id=self.translation_id)
+            .scalar()
+        )
 
     def to_dict(self):
         return {
@@ -42,5 +59,7 @@ class Chapter(Base):
             "tome": self.tome,
             "chapter": self.chapter,
             "creator": self.creator.to_dict() if self.creator else None,
-            "pages": [i.to_dict() for i in self.pages]
+            "pages": [i.to_dict() for i in self.pages],
+            "next": self.next,
+            "previous": self.previous,
         }

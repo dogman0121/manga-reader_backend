@@ -15,7 +15,7 @@ def test_getting_notification(app, client, jwt_token):
     )
     notification.add()
 
-    response = client.get("/api/v1/notifications", method="GET", headers={"Authorization": f"Bearer {jwt_token}"})
+    response = client.get("/api/v1/notifications", )
 
     print(response.json)
     assert response.status_code == 200

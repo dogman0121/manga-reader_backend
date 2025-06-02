@@ -33,5 +33,5 @@ class Team(Base):
             "id": self.id,
             "name": self.name,
             "about": self.about,
-            "poster": storage.get(f"/team/{self.id}/{self.poster.uuid}.{self.poster.ext}") if self.poster else None,
+            "poster": storage.get(f"/team/{self.id}/{self.poster.uuid}.{self.poster.ext}", ) if self.poster else None,
         }

@@ -35,13 +35,13 @@ def update_data(manga: Manga) -> None:
 
     description = request.form.get("description")
 
-    type = Type.query.get(int(request.form.get("type") or 1))
-    status = Status.query.get(int(request.form.get("status") or 1))
+    type = Type.query.get(int(request.form.get("type") or 1), )
+    status = Status.query.get(int(request.form.get("status") or 1), )
     year = int(request.form.get("year") or 0)
 
-    adult = Adult.query.get(int(request.form.get("adult") or 2025))
+    adult = Adult.query.get(int(request.form.get("adult") or 2025), )
 
-    genres = [Genre.query.get(int(i)) for i in request.form.getlist("genres")]
+    genres = [Genre.query.get(int(i), ) for i in request.form.getlist("genres")]
 
     authors = [Person.get(int(i)) for i in request.form.getlist("authors")]
     artists = [Person.get(int(i)) for i in request.form.getlist("artists")]
