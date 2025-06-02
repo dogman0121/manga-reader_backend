@@ -106,6 +106,22 @@ def post_chapter():
 
     return respond(data=chapter.to_dict()), 200
 
+@bp.route("/<int:chapter_id>", methods=["DELETE"])
+@jwt_required()
+def delete_chapter(chapter_id):
+    chapter = Chapter.get(chapter_id)
+    current_user = get_current_user_or_401()
+
+    if chapter is None:
+        return respond(error="not_found", detail={"chapter": "Chapter not found"})
+
+    translation = chapter.translation
+    if not translation.get_permission(current_user).get("delete"):
+        return respond(error="forbidden", detail={"chapter": "Chapter is forbidden"})
+
+    chapter.delete()
+
+    return "", 204
 
 @bp.route('/<int:chapter_id>', methods=['PUT'])
 @jwt_required()
