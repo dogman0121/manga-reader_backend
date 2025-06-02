@@ -52,7 +52,7 @@ class Chapter(Base):
             .first()
         )
 
-    def to_dict(self):
+    def to_dict(self, previous=False, next=False):
         return {
             "id": self.id,
             "name": self.name,
@@ -60,6 +60,6 @@ class Chapter(Base):
             "chapter": self.chapter,
             "creator": self.creator.to_dict() if self.creator else None,
             "pages": [i.to_dict() for i in self.pages],
-            "next_chapter": self.next.to_dict() if self.next else None,
-            "previous_chapter": self.previous.to_dict() if self.previous else None,
+            "next_chapter": self.next.to_dict() if self.next and next else None,
+            "previous_chapter": self.previous.to_dict() if self.previous and previous else None,
         }
