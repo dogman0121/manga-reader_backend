@@ -158,12 +158,26 @@ class Translation(Base):
     def chapters_count(self):
         return self.chapters.count()
 
-    def to_dict(self) -> dict:
+    def get_permissions(self, user):
+        if user is None:
+            return {}
+        else:
+            if user.id == self.user_id:
+                return {
+                    "update": True,
+                    "delete": True,
+                    "add_chapters": True
+                }
+
+        return {}
+
+    def to_dict(self, user=None) -> dict:
         return {
             "id": self.id,
             "translator_type": "team" if self.team_id else "user",
             "translator": self.team.to_dict() if self.team_id else self.user.to_dict(),
             "chapters_count": self.chapters_count,
+            "permissions": self.get_permissions(user)
         }
 
     @staticmethod
