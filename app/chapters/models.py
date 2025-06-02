@@ -41,7 +41,7 @@ class Chapter(Base):
         return (
             db.session.query(Chapter)
             .filter_by(chapter=self.chapter+1, translation_id=self.translation_id)
-            .scalar()
+            .first()
         )
 
     @hybrid_property
@@ -49,7 +49,7 @@ class Chapter(Base):
         return (
             db.session.query(Chapter)
             .filter_by(chapter=self.chapter - 1, translation_id=self.translation_id)
-            .scalar()
+            .first()
         )
 
     def to_dict(self):
