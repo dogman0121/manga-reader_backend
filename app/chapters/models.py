@@ -60,6 +60,6 @@ class Chapter(Base):
             "chapter": self.chapter,
             "creator": self.creator.to_dict() if self.creator else None,
             "pages": [i.to_dict() for i in self.pages],
-            "next_chapter": self.next,
-            "previous_chapter": self.previous,
+            "next_chapter": self.next.to_dict() if self.next else None,
+            "previous_chapter": self.previous.to_dict() if self.previous else None,
         }
