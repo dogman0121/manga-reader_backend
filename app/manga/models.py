@@ -388,6 +388,6 @@ class Manga(Base):
             "description": self.description,
             "genres": [i.to_dict() for i in self.genres],
             "user_rating": Rating.get(user.id, self.id).rating if user and Rating.get(user.id, self.id) else None,
-            "translations": [i.to_dict() for i in self.translations],
+            "translations": [i.to_dict(user=user) for i in self.translations],
         }
 
