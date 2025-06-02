@@ -121,6 +121,9 @@ def delete_chapter(chapter_id):
 
     chapter.delete()
 
+    if len(translation.chapters) == 0:
+        translation.delete()
+
     return "", 204
 
 @bp.route('/<int:chapter_id>', methods=['PUT'])
