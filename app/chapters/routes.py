@@ -102,6 +102,7 @@ def post_chapter():
     chapter.add()
 
     update_media(chapter)
+    chapter.update()
 
     return respond(data=chapter.to_dict()), 200
 
