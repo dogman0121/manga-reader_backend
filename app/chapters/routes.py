@@ -121,7 +121,7 @@ def delete_chapter(chapter_id):
 
     chapter.delete()
 
-    if len(translation.chapters) == 0:
+    if translation.chapters.count() == 0:
         translation.delete()
 
     return "", 204
