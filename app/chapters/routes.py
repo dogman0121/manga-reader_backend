@@ -126,7 +126,7 @@ def get_chapter(chapter_id):
 
     if chapter is None:
         return respond(error="not_found"), 404
-    return respond(data=chapter.to_dict()), 200
+    return respond(data=chapter.to_dict(previous=True, next=True)), 200
 
 @bp.route('/<int:chapter_id>/next', methods=['GET'])
 def get_next_chapter(chapter_id):
@@ -135,7 +135,7 @@ def get_next_chapter(chapter_id):
     if chapter is None:
         return respond(error="not_found"), 404
 
-    return respond(data=chapter.next), 200
+    return respond(data=chapter.next.to_dict(previous=True, next=True)), 200
 
 @bp.route('/<int:chapter_id>/previous', methods=['GET'])
 def get_previous_chapter(chapter_id):
@@ -144,4 +144,4 @@ def get_previous_chapter(chapter_id):
     if chapter is None:
         return respond(error="not_found"), 404
 
-    return respond(data=chapter.previous), 200
+    return respond(data=chapter.previous.to_dict(previous=True, next=True)), 200
