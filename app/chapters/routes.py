@@ -116,7 +116,7 @@ def delete_chapter(chapter_id):
         return respond(error="not_found", detail={"chapter": "Chapter not found"})
 
     translation = chapter.translation
-    if not translation.get_permission(current_user).get("delete"):
+    if not translation.get_permissions(current_user).get("delete"):
         return respond(error="forbidden", detail={"chapter": "Chapter is forbidden"})
 
     chapter.delete()
