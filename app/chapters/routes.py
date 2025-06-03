@@ -45,7 +45,7 @@ def update_data(chapter: Chapter):
             translation = Translation(manga_id=manga_id, user_id=chapter.creator_id)
             translation.add()
 
-    if Chapter.get(translation.id, chapter_number) is None:
+    if Chapter.get_by_chapter_number(translation.id, chapter_number) is None:
         return respond(error="bad_request", detail={"chapter": "Chapter already exists"}, status_code=400)
 
     chapter.translation_id = translation.id
