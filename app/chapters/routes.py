@@ -60,12 +60,13 @@ def update_media(chapter: Chapter):
     # update existing pages
     for page in chapter.pages:
         # delete unused pages
-        if page.uuid + page.ext not in pages_order:
-            storage.delete(f"chapter/{chapter.id}/{page.uuid}{page.ext}")
+        page_filename = page.uuid + page.ext
+        if page_filename not in pages_order:
+            storage.delete(f"chapter/{chapter.id}/{page_filename}")
             page.delete()
             continue
 
-        new_order = pages_order.index(page.uuid + page.ext)
+        new_order = pages_order.index(page_filename)
 
         page.order = new_order
         page.update()
