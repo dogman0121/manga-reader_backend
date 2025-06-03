@@ -63,6 +63,7 @@ def update_media(chapter: Chapter):
         if page.uuid + page.ext not in pages_order:
             storage.delete(f"chapter/{chapter.id}/{page.uuid}{page.ext}")
             page.delete()
+            continue
 
         new_order = pages_order.index(page.uuid + page.ext)
 
