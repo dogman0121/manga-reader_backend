@@ -45,9 +45,6 @@ def update_data(chapter: Chapter):
             translation = Translation(manga_id=manga_id, user_id=chapter.creator_id)
             translation.add()
 
-    if Chapter.get_by_chapter_number(translation.id, chapter_number) is None:
-        return respond(error="bad_request", detail={"chapter": "Chapter already exists"}, status_code=400)
-
     chapter.translation_id = translation.id
 
 def update_media(chapter: Chapter):
@@ -101,6 +98,9 @@ def post_chapter():
 
     chapter = Chapter(creator_id=current_user.id, creator=current_user)
     update_data(chapter)
+
+    if Chapter.get_by_chapter_number(chapter.translation_id, chapter.chapter) is None:
+        return abort(respond(error="bad_request", detail={"chapter": "Chapter already exists"}, status_code=400))
 
     chapter.add()
 
