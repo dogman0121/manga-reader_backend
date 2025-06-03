@@ -99,7 +99,7 @@ def post_chapter():
     chapter = Chapter(creator_id=current_user.id, creator=current_user)
     update_data(chapter)
 
-    if Chapter.get_by_chapter_number(chapter.translation_id, chapter.chapter) is None:
+    if Chapter.get_by_chapter_number(chapter.translation_id, chapter.chapter) is not None:
         return abort(respond(error="bad_request", detail={"chapter": "Chapter already exists"}, status_code=400))
 
     chapter.add()
