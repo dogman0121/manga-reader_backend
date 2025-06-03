@@ -1,6 +1,9 @@
 import os
 import uuid
 
+from app.utils import create_link
+
+
 class Storage:
     def __init__(self, app=None):
         self.app = app
@@ -34,4 +37,4 @@ class Storage:
 
     @staticmethod
     def get_url(relative_path):
-        return "https://kanwoo.ru/uploads/{}".format(relative_path)
+        return create_link("/uploads/" + relative_path)
