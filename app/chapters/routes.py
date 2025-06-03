@@ -64,7 +64,7 @@ def update_media(chapter: Chapter):
             storage.delete(f"chapter/{chapter.id}/{page.uuid}{page.ext}")
             page.delete()
 
-        new_order = pages_order.index(page.uuid)
+        new_order = pages_order.index(page.uuid + page.ext)
 
         page.order = new_order
         page.update()
