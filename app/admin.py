@@ -2,7 +2,7 @@ from app import db
 from app.user.models import User
 from app.manga.models import Manga, Genre, Status, NameTranslation, Type, Adult
 from app.person.models import Person
-from app.comment.models import Comment
+from app.comments.models import Comment
 from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
 

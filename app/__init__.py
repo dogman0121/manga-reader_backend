@@ -37,7 +37,7 @@ def create_app(config):
     from app.manga import bp as manga_bp
     app.register_blueprint(manga_bp)
 
-    from app.comment import bp as comment_bp
+    from app.comments import bp as comment_bp
     app.register_blueprint(comment_bp)
 
     from app.chapters import bp as chapters_bp
