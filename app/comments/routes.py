@@ -1,11 +1,13 @@
 from flask_jwt_extended import jwt_required
 
-from app.comment import bp
+from app.comments import bp
 from app.user.models import User
-from app.comment.models import Comment
-from app.comment.models import Vote
+from app.comments.models import Comment
+from app.comments.models import Vote
 
-from flask import request, jsonify
+from app.utils import respond
+
+from flask import request
 
 from flask_jwt_extended import (jwt_required, get_jwt_identity)
 
@@ -20,15 +22,15 @@ def get_comments_v1():
     user = User.get_by_id(get_jwt_identity())
 
     if manga_id is not None:
-        return jsonify(data=[i.to_dict(user=user) for i in Comment.get_manga_comments(manga_id=manga_id, page=page)])
+        return respond(data=[i.to_dict(user=user) for i in Comment.get_manga_comments(manga_id=manga_id, page=page)])
 
     if root_id is not None:
-        return jsonify(data=[i.to_dict(user=user) for i in Comment.get_comment_descendants(comment_id=root_id, page=page)])
+        return respond(data=[i.to_dict(user=user) for i in Comment.get_comment_descendants(comment_id=root_id, page=page)])
 
     if parent_id is not None:
-        return jsonify(data=[i.to_dict(user=user) for i in Comment.get_comment_children(comment_id=parent_id, page=page)])
+        return respond(data=[i.to_dict(user=user) for i in Comment.get_comment_children(comment_id=parent_id, page=page)])
 
-    return jsonify(error={"code": "bad_request"}), 400
+    return respond(error="bad_request"), 400
 
 
 @bp.route('/api/v1/comments/<int:comment_id>', methods=['GET'])
@@ -36,25 +38,25 @@ def get_comments_v1():
 def get_comment_v1(comment_id):
     user = User.get_by_id(get_jwt_identity())
 
-    return jsonify(data=Comment.get(comment_id).to_dict(user=user))
+    return respond(data=Comment.get(comment_id).to_dict(user=user))
 
 
 @bp.route('/api/v1/comments', methods=['POST'])
 @jwt_required()
 def add_comment_v1():
-    body = request.json
+    json = request.json
 
-    if body is None:
-        return jsonify(error={"code": "bad_request"}), 400
+    if json is None:
+        return respond(error="bad_request"), 400
 
-    if not body.get("text"):
-        return jsonify(error={"code": "bad_request"}), 400
+    if not json.get("text"):
+        return respond(error="bad_request"), 400
 
-    text = body.get("text")
+    text = json.get("text")
     user = User.get_by_id(get_jwt_identity())
-    root_id = body.get("root")
-    parent_id = body.get("parent")
-    manga_id = body.get("manga")
+    root_id = json.get("root")
+    parent_id = json.get("parent")
+    manga_id = json.get("manga")
 
     comment = Comment(text=text, creator=user, root_id=root_id, parent_id=parent_id)
 
@@ -63,7 +65,7 @@ def add_comment_v1():
     else:
         comment.add()
 
-    return jsonify(data=comment.to_dict()), 201
+    return respond(data=comment.to_dict()), 201
 
 @bp.route('/api/v1/comments', methods=['PUT'])
 def update_comment_v1():
@@ -83,12 +85,12 @@ def add_vote_v1(comment_id):
     vote_type = request.json.get("vote")
 
     if vote_type is None:
-        return jsonify(error={"code": "bad_request"}), 400
+        return respond(error="bad_request"), 400
 
     comment = Comment.get(comment_id)
 
     if comment is None:
-        return jsonify(error={"code": "not_found"}), 404
+        return respond(error="not_found"), 404
 
     user = User.get_by_id(get_jwt_identity())
 
@@ -100,11 +102,11 @@ def add_vote_v1(comment_id):
             vote.type = vote_type
             vote.update()
 
-        return jsonify(data=vote.to_dict()), 200
+        return respond(data=vote.to_dict()), 200
     else:
         vote = Vote(comment_id=comment_id, type=vote_type, user_id=user.id)
         vote.add()
-        return jsonify(data=vote.to_dict()), 200
+        return respond(data=vote.to_dict()), 200
 
 
 
@@ -114,8 +116,8 @@ def delete_vote_v1(comment_id):
     comment = Comment.get(comment_id)
 
     if comment is None:
-        return jsonify(error={"code": "not_found"}), 404
+        return respond(error="not_found"), 404
 
     comment.delete()
 
-    return jsonify(data=None), 204
+    return respond(data=None), 204
