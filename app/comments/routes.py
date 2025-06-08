@@ -60,14 +60,19 @@ def add_comment_v1():
     user = User.get_by_id(get_jwt_identity())
     root_id = json.get("root")
     parent_id = json.get("parent")
+    chapter_id = json.get("chapter")
     manga_id = json.get("manga")
 
     comment = Comment(text=text, creator=user, root_id=root_id, parent_id=parent_id)
 
     if manga_id:
-        comment.add_for_manga(manga_id=manga_id)
-    else:
-        comment.add()
+        comment.entity_type = "manga"
+        comment.entity_id = manga_id
+    elif chapter_id:
+        comment.entity_type = "chapter"
+        comment.entity_id = chapter_id
+
+    comment.add()
 
     return respond(data=comment.to_dict()), 201
 
