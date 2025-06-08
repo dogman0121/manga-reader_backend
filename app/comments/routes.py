@@ -15,6 +15,7 @@ from flask_jwt_extended import (jwt_required, get_jwt_identity)
 @jwt_required(optional=True)
 def get_comments_v1():
     manga_id = request.args.get('manga', type=int)
+    chapter_id = request.args.get('chapter', type=int)
     root_id = request.args.get('root', type=int)
     parent_id = request.args.get('parent', type=int)
     page = request.args.get('page', 1, type=int)
@@ -23,6 +24,9 @@ def get_comments_v1():
 
     if manga_id is not None:
         return respond(data=[i.to_dict(user=user) for i in Comment.get_manga_comments(manga_id=manga_id, page=page)])
+
+    if chapter_id is not None:
+        return respond(data=[i.to_dict(user=user) for i in Comment.get_chapter_comments(chapter_id=chapter_id, page=page)])
 
     if root_id is not None:
         return respond(data=[i.to_dict(user=user) for i in Comment.get_comment_descendants(comment_id=root_id, page=page)])

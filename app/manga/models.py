@@ -223,7 +223,7 @@ class Manga(Base):
     artists: Mapped[list["Person"]] = relationship(secondary="manga_artist")
     publishers: Mapped[list["Person"]] = relationship(secondary="manga_publisher")
     creator: Mapped["User"] = relationship("User")
-    comments: Mapped["Comment"] = relationship("Comment", secondary="manga_comment", back_populates="manga")
+    # comments: Mapped["Comment"] = relationship("Comment", secondary="manga_comment", back_populates="manga")
     translations: Mapped[list["Translation"]] = relationship("Translation", uselist=True)
 
     @staticmethod

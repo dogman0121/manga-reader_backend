@@ -46,7 +46,24 @@ class Comment(Base):
     creator_id: Mapped[int] = mapped_column(ForeignKey('user.id'), nullable=False)
     creator: Mapped["User"] = relationship('User', backref='comments')
     created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda x: datetime.utcnow(), nullable=False)
-    manga: Mapped["Manga"] = relationship("Manga", secondary="manga_comment", back_populates="comments")
+    entity_type: Mapped[str] = mapped_column(nullable=True)
+    entity_id: Mapped[int] = mapped_column(nullable=True)
+
+    # manga: Mapped["Manga"] = relationship("Manga", secondary="manga_comment", back_populates="comments")
+    # chapter: Mapped["Chapter"] = relationship("Chapter", secondary="chapter_comments", back_populates="comments")
+    # post: Mapped["Post"] = relationship("Post", secondary="post_comment", back_populates="comments")
+
+    @hybrid_property
+    def manga(self):
+        if self.entity_type != "manga":
+            return None
+        return db.session.query("Manga").filter_by(id=self.entity_id).first()
+
+    @hybrid_property
+    def chapter(self):
+        if self.entity_type != "chapter":
+            return None
+        return db.session.query("Chapter").filter_by(id=self.entity_id).first()
 
     @hybrid_property
     def answers_count(self) -> int:
@@ -83,15 +100,20 @@ class Comment(Base):
         ).scalar()
 
     @staticmethod
-    def get(comment_id: int) -> "Comment":
-        return db.session.get(Comment, comment_id)
-
-    @staticmethod
     def get_manga_comments(manga_id, page=1):
         return db.session.execute(
             Select(Comment)
-            .join(MangaComment)
-            .filter_by(manga_id=manga_id)
+            .filter_by(entity_type="manga", entity_id=manga_id)
+            .order_by(asc(Comment.created_at))
+            .limit(Comment.page_size)
+            .offset((page - 1) * Comment.page_size)
+        ).scalars().all()
+
+    @staticmethod
+    def get_chapter_comments(chapter_id, page=1):
+        return db.session.execute(
+            Select(Comment)
+            .filter_by(entity_type="chapter", entity_id=chapter_id)
             .order_by(asc(Comment.created_at))
             .limit(Comment.page_size)
             .offset((page - 1) * Comment.page_size)
@@ -152,3 +174,16 @@ class MangaComment(Base):
 
     manga_id: Mapped[int] = mapped_column(ForeignKey('manga.id'), nullable=False, primary_key=True)
     comment_id: Mapped[int] = mapped_column(ForeignKey('comment.id'), nullable=False, primary_key=True)
+
+class ChapterComment(Base):
+    __tablename__ = 'chapter_comment'
+
+    chapter_id: Mapped[int] = mapped_column(ForeignKey('chapter.id'), nullable=False, primary_key=True)
+    comment_id: Mapped[int] = mapped_column(ForeignKey('comment.id'), nullable=False, primary_key=True)
+
+
+# class PostComment(Base):
+#     __tablename__ = 'post_comment'
+#
+#     post_id: Mapped[int] = mapped_column(ForeignKey('post.id'), nullable=False, primary_key=True)
+#     comment_id: Mapped[int] = mapped_column(ForeignKey('comment.id'), nullable=False, primary_key=True)
