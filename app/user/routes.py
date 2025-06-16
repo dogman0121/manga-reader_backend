@@ -12,6 +12,8 @@ from app.notifications.models import Notification
 from app.email import send_registration_verification_mail, send_password_recovery_mail
 from PIL import Image
 
+from app.utils import respond
+
 
 @bp.route('/api/v1/users/<int:user_id>', methods=['GET'])
 @jwt_required(optional=True)
@@ -111,7 +113,7 @@ def edit_user_v1(user_id: int):
     user = User.get_by_id(int(get_jwt_identity()))
 
     if user.id != user_id:
-        return jsonify(msg="You are not allowed to edit this user"), 403
+        return respond(error="forbidden", detail={"msg": "You are not allowed to edit this user"}), 403
 
     if "login" in request.json:
         user.login = request.json["login"]
@@ -120,13 +122,13 @@ def edit_user_v1(user_id: int):
         user.password = request.json["password"]
 
     user.update()
-    return jsonify(user.to_dict())
+    return respond(data=user.to_dict())
 
 @bp.route('/api/v1/users/me', methods=['GET'])
 @jwt_required()
 def get_current_user_v1():
     user = get_jwt_identity()
-    return jsonify(data=User.get_by_id(user).to_dict())
+    return respond(data=User.get_by_id(user).to_dict())
 
 @bp.route('/api/v1/users/me/affiliate', methods=['GET'])
 def affiliate_user_v1(user_id: int):
@@ -139,51 +141,53 @@ def register_user_v1():
     password = request.json['password']
 
     if User.get_by_login(login):
-        return jsonify({"msg": "Login already taken"})
+        return respond(error="bad_request", detail={"login": "Login already taken"}), 400
 
     if User.get_by_email(email):
-        return jsonify({"msg": "Email already taken"})
+        return respond(error="bad_request", detail={"email": "Email already taken"}), 400
 
     if not User.validate_login(login):
-        return jsonify({"msg": "Invalid login"})
+        return respond(error="bad_request", detail={"login": "Invalid login"}), 400
 
     if not User.validate_email(email):
-        return jsonify({"msg": "Invalid email"})
+        return respond(error="bad_request", detail={"email": "Invalid email"}), 400
 
     if not User.validate_password(password):
-        return jsonify({"msg": "Invalid password"})
+        return respond(error="bad_request", detail={"password": "Invalid password"}), 400
 
     send_registration_verification_mail(login, email, password)
 
     return jsonify(
-        msg="Email sent",
-    )
+        data={
+            "msg": "Email sent",
+        }
+    ), 200
 
 @bp.route("/api/v1/users/verify", methods=["POST"])
 def verify_registration_v1():
     if "token" not in request.json:
-        return jsonify({"msg": "Token missing"})
+        return respond(error="bad_request", detail={"token": "Token missing"}), 400
 
     token = request.json["token"]
 
     user_info = User.verify_registration_token(token)
     if user_info is None:
-        return jsonify({"msg": "Invalid token"})
+        return respond(error="bad_request", detail={"token": "Invalid token"}), 400
 
     login = user_info["login"]
     email = user_info["email"]
     password = user_info["password"]
 
     if User.get_by_login(login) or User.get_by_email(email):
-        return jsonify({"msg": "Token already used"})
+        return respond(error="bad_request", detail={"token": "Token already used"}), 400
 
     user = User(login=login, email=email, password=password)
     user.add()
 
-    return jsonify(
-        access_token=create_access_token(identity=user.id),
-        refresh_token=create_refresh_token(identity=user.id),
-    )
+    return respond(data={
+        "access_token": create_access_token(identity=user.id),
+        "refresh_token": create_refresh_token(identity=user.id)
+    })
 
 
 @bp.route('/api/v1/users/login', methods=['POST'])
@@ -193,15 +197,15 @@ def login_user_v1():
 
     user = User.get_by_login(login)
     if not user:
-        return jsonify({"msg": "User does not exist"})
+        return respond(error="not_found", detail={"user": "User does not exist"}), 404
 
     if not user.check_password(password):
-        return jsonify({"msg": "Incorrect password"})
+        return respond(error="bad_request", detail={"password": "Incorrect password"}), 400
 
-    return jsonify(
-        access_token=create_access_token(identity=user.id),
-        refresh_token=create_refresh_token(identity=user.id),
-    )
+    return respond(data={
+        "access_token": create_access_token(identity=user.id),
+        "refresh_token": create_refresh_token(identity=user.id)
+    })
 
 
 @bp.route("/api/v1/users/refresh", methods=["POST"])
@@ -216,14 +220,14 @@ def refresh_user_v1():
 @bp.route("/api/v1/users/forgot", methods=["POST"])
 def forgot_user_v1():
     if "email" not in request.json:
-        return jsonify({"msg": "Email missing"})
+        return respond(error="bad_request", detail={"email": "Email missing"}), 400
 
     email = request.json["email"]
 
     user = User.get_by_email(email)
 
     if user is None:
-        return jsonify({"msg": "User does not exist"})
+        return respond(error="not_found", detail={"user": "User does not exist"}), 404
 
     send_password_recovery_mail(user.id, email)
 
@@ -235,10 +239,10 @@ def forgot_user_v1():
 @bp.route("/api/v1/users/recovery", methods=["POST"])
 def recover_user_v1():
     if "token" not in request.json:
-        return jsonify({"msg": "Token missing"})
+        return respond(error="bad_request", detail={"token": "Token missing"}), 400
 
     if "password" not in request.json:
-        return jsonify({"msg": "Password missing"})
+        return respond(error="bad_request", detail={"password": "Password missing"}), 400
 
     token = request.json["token"]
     password = request.json["password"]
@@ -246,12 +250,12 @@ def recover_user_v1():
     user = User.verify_recovery_token(token)
 
     if user is None:
-        return jsonify({"msg": "Invalid token"})
+        return respond(error="bad_request", detail={"token": "Invalid token"}), 400
 
     if not User.validate_password(password):
-        return jsonify({"msg": "Invalid password"})
+        return respond(error="bad_request", detail={"password": "Invalid password"}), 400
 
     user.set_password(password)
     user.update()
 
-    return jsonify(msg="Password updated")
+    return respond(data={"msg":"Password updated"})
