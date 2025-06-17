@@ -214,7 +214,10 @@ def refresh_user_v1():
     identity = get_jwt_identity()
     access_token = create_access_token(identity=identity)
     refresh_token = create_refresh_token(identity=identity)
-    return jsonify(access_token=access_token, refresh_token=refresh_token)
+    return respond(data={
+        "access_token": access_token,
+        "refresh_token":refresh_token
+    })
 
 
 @bp.route("/api/v1/users/forgot", methods=["POST"])
