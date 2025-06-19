@@ -3,6 +3,7 @@ from flask import jsonify, request
 from app.person.models import Person
 from app.search import bp
 from app.manga.models import Manga
+from app.user.models import User
 from app.utils import respond
 
 
@@ -28,8 +29,8 @@ def search_v1():
     if section == "manga":
         return respond(data=[ i.to_dict() for i in Manga.get_with_filters(query, **parse_manga_filters()) ])
 
-    if section == "person":
-        return respond(data=[i.to_dict() for i in Person.search(query)])
+    if section == "user":
+        return respond(data=[i.to_dict() for i in User.search(query)])
 
     return jsonify(
         [{
