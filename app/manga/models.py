@@ -229,10 +229,9 @@ class Manga(Base):
         cascade="save-update, merge, delete, delete-orphan")
     type: Mapped["Type"] = relationship()
     status: Mapped["Status"] = relationship()
-    main_poster: Mapped[list["Poster"]] = relationship(
+    main_poster: Mapped["Poster"] = relationship(
         primaryjoin="and_(Manga.main_poster_number == Poster.order, Manga.id == Poster.manga_id)",
         back_populates="manga",
-        uselist=True
     )
     posters: Mapped[list["Poster"]] = relationship(back_populates="manga")
     adult: Mapped["Adult"] = relationship()
