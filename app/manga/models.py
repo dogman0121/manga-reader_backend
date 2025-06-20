@@ -232,6 +232,7 @@ class Manga(Base):
     main_poster: Mapped["Poster"] = relationship(
         primaryjoin="and_(Manga.main_poster_number == Poster.order, Manga.id == Poster.manga_id)",
         back_populates="manga",
+        uselist=False
     )
     posters: Mapped[list["Poster"]] = relationship(back_populates="manga")
     adult: Mapped["Adult"] = relationship()
@@ -377,6 +378,7 @@ class Manga(Base):
 
 
     def to_dict(self, user=None, posters=False):
+        print(self.main_poster)
         return {
             "id": self.id,
             "name": self.name,
@@ -389,7 +391,7 @@ class Manga(Base):
             "saves": self.saves_count,
             "rating_count": self.rating[2],
             "name_translations": [i.to_dict() for i in self.name_translations],
-            "main_poster": self.main_poster.to_dict() if self.main_poster else None,
+            "main_poster": self.main_poster[0].to_dict() if self.main_poster else None,
             "background":
                 storage.get_url(f"manga/{self.id}/{self.background}")
                 if self.background else None,
