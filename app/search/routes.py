@@ -1,6 +1,5 @@
 from flask import jsonify, request
 
-from app.person.models import Person
 from app.search import bp
 from app.manga.models import Manga
 from app.user.models import User

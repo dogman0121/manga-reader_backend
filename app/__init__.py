@@ -1,5 +1,4 @@
 from flask import Flask
-from flask_admin import Admin
 from flask_mail import Mail
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
@@ -27,9 +26,6 @@ def create_app(config):
 
     from app.user import bp as user_bp
     app.register_blueprint(user_bp)
-
-    from app.person import bp as person_bp
-    app.register_blueprint(person_bp)
 
     from app.search import bp as search_bp
     app.register_blueprint(search_bp)

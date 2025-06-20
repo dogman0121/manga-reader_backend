@@ -1,7 +1,6 @@
 from app import db
 from app.user.models import User
 from app.manga.models import Manga, Genre, Status, NameTranslation, Type, Adult
-from app.person.models import Person
 from app.comments.models import Comment
 from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
@@ -39,6 +38,5 @@ admin.add_view(ModelView(Genre, db.session, endpoint="genres"))
 admin.add_view(ModelView(Status, db.session, endpoint="statuses"))
 admin.add_view(ModelView(Type, db.session, endpoint="types"))
 admin.add_view(ModelView(Adult, db.session, endpoint="adults"))
-admin.add_view(PersonAdmin(Person, db.session, endpoint="persons"))
 admin.add_view(CommentAdmin(Comment, db.session, endpoint="comments"))
 admin.add_view(NameTranslationAdmin(NameTranslation, db.session, endpoint="name-translations"))

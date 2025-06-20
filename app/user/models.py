@@ -62,6 +62,12 @@ class User(Base):
     def get_by_email(email):
         return User.query.filter_by(email=email).scalar()
 
+    @staticmethod
+    def search(query):
+        return db.session.execute(
+            Select(User).filter(func.lower(User.login).like(f"%{query.lower()}%"))
+        ).scalars().all()
+
     def add(self):
         db.session.add(self)
         db.session.commit()

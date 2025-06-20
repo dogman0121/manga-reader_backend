@@ -1,9 +1,10 @@
 import os
 
 from sqlalchemy.ext.hybrid import hybrid_property, hybrid_method
+from typing_extensions import override
 
 from app import db, storage
-from app.models import Base
+from app.models import Base, File
 from datetime import datetime
 from sqlalchemy import Integer, Text, ForeignKey, DateTime, Column, Table, String, Select, func, desc, and_
 from sqlalchemy.dialects.postgresql import JSONB
@@ -17,21 +18,21 @@ manga_authors = Table(
     "manga_author",
     db.metadata,
     Column("manga_id", Integer, db.ForeignKey("manga.id")),
-    Column("person_id", Integer, db.ForeignKey("person.id")),
+    Column("user_id", Integer, db.ForeignKey("user.id")),
 )
 
 manga_artists = Table(
     "manga_artist",
     db.metadata,
     Column("manga_id", Integer, db.ForeignKey("manga.id")),
-    Column("person_id", Integer, db.ForeignKey("person.id")),
+    Column("user_id", Integer, db.ForeignKey("user.id")),
 )
 
 manga_publishers = Table(
     "manga_publisher",
     db.metadata,
     Column("manga_id", Integer, db.ForeignKey("manga.id")),
-    Column("person_id", Integer, db.ForeignKey("person.id")),
+    Column("user_id", Integer, db.ForeignKey("user.id")),
 )
 
 manga_genres = Table(
@@ -115,26 +116,42 @@ class NameTranslation(Base):
             "name": self.name,
         }
 
+class PosterFile(Base, File):
+    __tablename__ = "manga_poster_file"
+    uuid: Mapped[str] = mapped_column(primary_key=True)
+    type: Mapped[str] = mapped_column(nullable=True)
+    poster_uuid: Mapped[str] = mapped_column(ForeignKey("manga_poster.uuid"), nullable=False)
+
+    poster: Mapped["Poster"] = relationship("Poster", back_populates="files")
+
 class Poster(Base):
     __tablename__ = "manga_poster"
 
     uuid: Mapped[str] = mapped_column(primary_key=True)
     manga_id: Mapped[int] = mapped_column(ForeignKey("manga.id", ondelete="CASCADE", onupdate="CASCADE"), nullable=False)
-    filenames: Mapped[str] = mapped_column(JSONB, nullable=False)
     order: Mapped[int] = mapped_column(Integer, nullable=False)
 
     manga: Mapped["Manga"] = relationship(back_populates="posters")
+    files: Mapped[list["PosterFile"]] = relationship(uselist=True, back_populates="poster")
 
+    def to_dict(self):
+        dct =  dict(
+            [(file.type, storage.get_url(f"manga/{self.manga_id}/{file.uuid}{file.ext}")) for file in self.files]
+        )
+        dct["uuid"] = self.uuid
 
-def get_poster_dict(manga_id: int, poster: Poster) -> dict:
+        return dct
 
-    return {
-        "uuid": poster.uuid,
-        "thumbnail": storage.get_url(f"manga/{manga_id}/{poster.filenames['thumbnail']}"),
-        "small": storage.get_url(f"manga/{manga_id}/{poster.filenames['small']}"),
-        "medium": storage.get_url(f"manga/{manga_id}/{poster.filenames['medium']}"),
-        "large": storage.get_url(f"manga/{manga_id}/{poster.filenames['large']}"),
-    }
+    def add_file(self, file: PosterFile):
+        self.files.append(file)
+
+    @override
+    def delete(self):
+        for file in self.files:
+            storage.delete(f"manga/${self.manga_id}/${file.uuid}{file.ext}")
+            file.delete()
+        self.delete()
+
 
 class Save(Base):
     __tablename__ = "save"
@@ -212,16 +229,17 @@ class Manga(Base):
         cascade="save-update, merge, delete, delete-orphan")
     type: Mapped["Type"] = relationship()
     status: Mapped["Status"] = relationship()
-    main_poster: Mapped["Poster"] = relationship(
+    main_poster: Mapped[list["Poster"]] = relationship(
         primaryjoin="and_(Manga.main_poster_number == Poster.order, Manga.id == Poster.manga_id)",
         back_populates="manga",
+        uselist=True
     )
     posters: Mapped[list["Poster"]] = relationship(back_populates="manga")
     adult: Mapped["Adult"] = relationship()
     genres: Mapped[list["Genre"]] = relationship("Genre", secondary="manga_genre")
-    authors: Mapped[list["Person"]] = relationship(secondary="manga_author")
-    artists: Mapped[list["Person"]] = relationship(secondary="manga_artist")
-    publishers: Mapped[list["Person"]] = relationship(secondary="manga_publisher")
+    authors: Mapped[list["User"]] = relationship(secondary="manga_author", uselist=True)
+    artists: Mapped[list["User"]] = relationship(secondary="manga_artist", uselist=True)
+    publishers: Mapped[list["User"]] = relationship(secondary="manga_publisher", uselist=True)
     creator: Mapped["User"] = relationship("User")
     # comments: Mapped["Comment"] = relationship("Comment", secondary="manga_comment", back_populates="manga")
     translations: Mapped[list["Translation"]] = relationship("Translation", uselist=True)
@@ -251,8 +269,7 @@ class Manga(Base):
     def main_poster(self):
         return (
             db.session.query(Poster)
-            .filter(Poster.order == self.main_poster_number, Poster.manga_id == self.id)
-            .scalar()
+            .filter(Poster.order == self.main_poster_number, Poster.manga_id == self.id).all()
         )
 
     # ----- Filters -----
@@ -359,6 +376,7 @@ class Manga(Base):
         if rating is not None:
             rating.delete()
 
+
     def to_dict(self, user=None, posters=False):
         return {
             "id": self.id,
@@ -372,15 +390,13 @@ class Manga(Base):
             "saves": self.saves_count,
             "rating_count": self.rating[2],
             "name_translations": [i.to_dict() for i in self.name_translations],
-            "main_poster":
-                get_poster_dict(self.id, self.main_poster)
-                if self.main_poster else None,
+            "main_poster": dict([
+                (size.type, storage.get_url(f"manga/{self.id}/{size.uuid}{size.ext}")) for size in self.main_poster
+            ]) if self.main_poster else None,
             "background":
                 storage.get_url(f"manga/{self.id}/{self.background}")
                 if self.background else None,
-            "posters": [
-                get_poster_dict(self.id, poster) for poster in sorted(self.posters, key=lambda x: x.order)
-            ] if posters else [],
+            "posters": [p.to_dict() for p in self.posters],
             "authors": [author.to_dict() for author in self.authors],
             "artists": [artist.to_dict() for artist in self.artists],
             "publishers": [publisher.to_dict() for publisher in self.publishers],
