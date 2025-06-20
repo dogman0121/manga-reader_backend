@@ -67,9 +67,9 @@ def update_data(manga: Manga) -> None:
 
 poster_sizes = {
     "thumbnail": (80, 120),
-    "small": (400, 600),
-    "medium": (800, 1200),
-    "large": (1200, 1800),
+    "small": (200, 300),
+    "medium": (400, 600),
+    "large": (600, 900),
 }
 
 def save_image(img, size, manga_id):
