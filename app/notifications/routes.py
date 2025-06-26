@@ -13,7 +13,7 @@ from ..utils import respond
 def get_notification():
     current_user = get_current_user_or_401()
 
-    notifications = Notification.get_user_notifications(current_user.id)
+    notifications = current_user.notifications[:20]
     return respond(data=[i.to_dict() for i in notifications])
 
 @bp.route('', strict_slashes=False, methods=['POST'])
