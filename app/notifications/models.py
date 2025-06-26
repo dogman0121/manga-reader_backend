@@ -1,3 +1,4 @@
+from PIL.ImageChops import offset
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -8,6 +9,9 @@ from app.models import Base
 
 
 class Notification(Base):
+    page_size = 10
+
+    __tablename__ = "notification"
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     user_id: Mapped[int] = mapped_column(ForeignKey('user.id'), nullable=False)
     type: Mapped[str] = mapped_column(nullable=False)
@@ -30,11 +34,12 @@ class Notification(Base):
     manga: Mapped["Manga"] = relationship()
 
     @staticmethod
-    def get_user_notifications(user_id):
-        return Notification.query.filter_by(user_id=user_id).all()
+    def get_user_notifications(user, page=1):
+        return Notification.query.filter_by(user_id=user.id).limit(Notification.page_size).offset((page-1) * Notification.page_size).all()
 
     def to_dict(self):
         return {
+            "action": self.action,
             "id": self.id,
             "user": self.user.to_dict(),
             "type": self.type,
