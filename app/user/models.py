@@ -1,14 +1,17 @@
 from flask import current_app
+
 from app import db, storage
 from app.models import Base
+from app.notifications.models import Notification
+
 from sqlalchemy import Table, ForeignKey, Column, String, Integer, DateTime, Text, insert, delete, select, and_, func, Select
 from sqlalchemy.orm import mapped_column, Mapped, relationship
+
 from datetime import datetime
+
 from werkzeug.security import generate_password_hash, check_password_hash
 import jwt
 from time import time
-
-from app.notifications import Notification
 
 oauth = Table(
     'oauth',
