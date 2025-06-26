@@ -37,6 +37,14 @@ class Notification(Base):
     def get_user_notifications(user, page=1):
         return Notification.query.filter_by(user_id=user.id).limit(Notification.page_size).offset((page-1) * Notification.page_size).all()
 
+    @staticmethod
+    def get_all_user_notification_count(user):
+        return Notification.query.filter_by(user_id=user.id).count()
+
+    @staticmethod
+    def get_unread_user_notifications_count(user):
+        return Notification.query.filter_by(user_id=user.id, is_read=False).count()
+
     def to_dict(self):
         return {
             "action": self.action,

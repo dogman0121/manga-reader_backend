@@ -8,6 +8,8 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import jwt
 from time import time
 
+from app.notifications import Notification
+
 oauth = Table(
     'oauth',
     db.metadata,
@@ -210,4 +212,5 @@ class User(Base):
             "avatar": storage.get_url(f"user/{self.id}/{self.avatar.filename}") if self.avatar else None,
             "about": self.about,
             "subscribers_count": self.get_subscribers_count(),
+            "notifications_count": Notification.get_unread_user_notifications_count(self),
         }
