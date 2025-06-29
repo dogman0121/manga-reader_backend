@@ -14,7 +14,6 @@ class Notification(Base):
     __tablename__ = "notification"
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     user_id: Mapped[int] = mapped_column(ForeignKey('user.id'), nullable=False)
-    type: Mapped[str] = mapped_column(nullable=False)
     action: Mapped[str] = mapped_column(nullable=False)
     content: Mapped[str] = mapped_column(nullable=True)
     team_id: Mapped[int] = mapped_column(ForeignKey('team.id'), nullable=True)
@@ -50,7 +49,6 @@ class Notification(Base):
             "action": self.action,
             "id": self.id,
             "user": self.user.to_dict(),
-            "type": self.type,
             "is_read": self.is_read,
             "created_at": self.created_at,
             "payload": self._render_payload()
@@ -59,7 +57,7 @@ class Notification(Base):
     def _render_payload(self):
         if self.type == "user":
             return {
-                "actor": self.actor.to_dict(),
+                "user": self.actor.to_dict(),
             }
 
         if self.type == "team":
@@ -67,7 +65,7 @@ class Notification(Base):
 
         if self.type == "comment":
             return {
-                "actor": self.actor.to_dict(),
+                "user": self.actor.to_dict(),
                 "comment": self.comment.to_dict(),
             }
 

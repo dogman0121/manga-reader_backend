@@ -79,7 +79,6 @@ def subscribe_v1(user_id: int):
     if request.method == 'POST':
         user.subscribe(subscriber)
         notification = Notification(
-            type="user",
             action="subscribe",
             user=user,
             actor=subscriber
