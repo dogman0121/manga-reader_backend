@@ -28,6 +28,7 @@ def remove_notification():
     pass
 
 @bp.route('', methods=['PATCH'])
+@jwt_required()
 def read_notification():
     current_user = get_current_user()
 
