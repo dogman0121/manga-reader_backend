@@ -70,3 +70,5 @@ class Notification(Base):
 
         if self.chapter_id:
             payload["chapter"] = self.chapter.to_dict()
+
+        return payload
