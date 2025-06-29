@@ -8,13 +8,13 @@ from app import db
 from app.models import Base
 
 
-class NotificationService():
+class NotificationService:
     page_size = 10
 
     @staticmethod
     def get_user_notifications(user, page=1):
-        return Notification.query.filter_by(user_id=user.id).limit(Notification.page_size).offset(
-            (page - 1) * Notification.page_size).all()
+        return Notification.query.filter_by(user_id=user.id).limit(NotificationService.page_size).offset(
+            (page - 1) * NotificationService.page_size).all()
 
     @staticmethod
     def get_all_user_notification_count(user):
