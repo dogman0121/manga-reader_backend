@@ -55,22 +55,18 @@ class Notification(Base):
         }
 
     def _render_payload(self):
-        if self.type == "user":
-            return {
-                "user": self.actor.to_dict(),
-            }
+        payload = {}
+        if self.user_id:
+            payload["user"] = self.actor.to_dict()
 
-        if self.type == "team":
+        if self.team_id:
             return {}
 
-        if self.type == "comment":
-            return {
-                "user": self.actor.to_dict(),
-                "comment": self.comment.to_dict(),
-            }
+        if self.comment_id:
+            payload["comment"] = self.comment.to_dict()
 
-        if self.type == "manga":
+        if self.manga_id:
             return {}
 
-        if self.type == "chapter":
-            pass
+        if self.chapter_id:
+            payload["chapter"] = self.chapter.to_dict()

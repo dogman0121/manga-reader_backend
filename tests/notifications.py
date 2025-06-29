@@ -8,7 +8,6 @@ def test_getting_notification(app, client, jwt_token):
     actor.add()
 
     notification = Notification(
-        type="user",
         action="subscribe",
         user=user,
         actor=actor
