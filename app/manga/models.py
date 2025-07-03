@@ -391,6 +391,7 @@ class Manga(Base):
         return {
             "id": self.id,
             "name": self.name,
+            "slug": self.slug,
             "type": self.type.to_dict() if self.type else None,
             "status": self.status.to_dict() if self.status else None,
             "adult": self.adult.to_dict() if self.adult else None,
