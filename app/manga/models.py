@@ -206,12 +206,22 @@ class Translation(Base):
         return Translation.query.filter_by(manga_id=manga_id, user_id=user_id).scalar()
 
 
+class MangaService:
+    @staticmethod
+    def get_by_id(manga_id):
+        return Manga.query.get(manga_id).scalar()
+
+    @staticmethod
+    def get_by_slug(slug):
+        return Manga.query.filter_by(slug=slug).scalar()
+
 class Manga(Base):
     page_size = 20
 
     __tablename__ = 'manga'
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True, nullable=False, unique=True)
+    slug: Mapped[str] = mapped_column(unique=True, nullable=False)
     name: Mapped[str] = mapped_column(Text, nullable=False)
     description: Mapped[str] = mapped_column(Text, nullable=True)
     type_id: Mapped[Optional[int]] = mapped_column(ForeignKey("type.id"), nullable=True)
@@ -378,7 +388,6 @@ class Manga(Base):
 
 
     def to_dict(self, user=None, posters=False):
-        print(self.main_poster)
         return {
             "id": self.id,
             "name": self.name,
