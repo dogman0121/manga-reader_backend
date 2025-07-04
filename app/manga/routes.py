@@ -254,10 +254,10 @@ def add_rating_v1(slug) -> [str, int]:
         return respond(error="not_found"), 404
 
     user = User.get_by_id(get_jwt_identity())
-    if Rating.get(user.id, manga_id) is None:
+    if Rating.get(user.id, manga.id) is None:
         manga.add_rating(user, rating_int)
     else:
-        if rating_int == Rating.get(user.id, manga_id).rating:
+        if rating_int == Rating.get(user.id, manga.id).rating:
             manga.delete_rating(user)
         else:
             manga.update_rating(user, rating_int)
