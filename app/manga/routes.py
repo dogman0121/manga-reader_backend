@@ -173,7 +173,7 @@ def update_media(manga: Manga) -> None:
 def get_manga_v1(slug):
     current_user = get_current_user()
 
-    manga = MangaService.get_by_slug(slug)
+    manga = MangaService.get_manga(slug=slug)
 
     if manga is None:
         return respond(error="not_found"), 404
@@ -249,7 +249,7 @@ def add_rating_v1(slug) -> [str, int]:
     except ValueError:
         return respond(error="bad_request"), 400
 
-    manga = MangaService.get_by_slug(slug)
+    manga = MangaService.get_manga(slug=slug)
     if manga is None:
         return respond(error="not_found"), 404
 
@@ -268,7 +268,7 @@ def add_rating_v1(slug) -> [str, int]:
 @bp.route("/api/v1/manga/<slug>/ratings", methods=["DELETE"])
 @jwt_required()
 def delete_rating_v1(slug) -> [str, int]:
-    manga = MangaService.get_by_slug(slug)
+    manga = MangaService.get_manga(slug=slug)
 
     if manga is None:
         return respond("not_found"), 404
