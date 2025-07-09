@@ -49,7 +49,7 @@ class User(Base):
 
     avatar: Mapped["Avatar"] = relationship(Avatar)
     notifications: Mapped[list["Notification"]] = relationship(back_populates="user", uselist=True, foreign_keys="Notification.user_id")
-
+    lists: Mapped[list["List"]] = relationship(back_populates="creator", foreign_keys="List.creator_id", uselist=True)
 
     def __init__(self, login, email, password):
         self.set_login(login)

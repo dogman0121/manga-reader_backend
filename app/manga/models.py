@@ -208,12 +208,11 @@ class Translation(Base):
 
 class MangaService:
     @staticmethod
-    def get_by_id(manga_id):
-        return Manga.query.get(manga_id).scalar()
-
-    @staticmethod
-    def get_by_slug(slug):
-        return Manga.query.filter_by(slug=slug).scalar()
+    def get_manga(manga_id=None, slug=None):
+        if manga_id:
+            return Manga.query.get(manga_id).scalar()
+        if slug:
+            return Manga.query.filter_by(slug=slug).scalar()
 
 class Manga(Base):
     page_size = 20

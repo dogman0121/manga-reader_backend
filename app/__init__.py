@@ -45,6 +45,9 @@ def create_app(config):
     from app.notifications import bp as notifications_bp
     app.register_blueprint(notifications_bp, url_prefix='/api/v1/notifications')
 
+    from app.lists import bp as lists_bp
+    app.register_blueprint(lists_bp, url_prefix='/api/v1/lists')
+
     from app.admin import admin
     admin.init_app(app)
 
