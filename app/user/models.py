@@ -216,5 +216,6 @@ class User(Base):
             "avatar": storage.get_url(f"user/{self.id}/{self.avatar.filename}") if self.avatar else None,
             "about": self.about,
             "subscribers_count": self.get_subscribers_count(),
+            "lists": [l.to_dict() for l in self.lists],
             "notifications_count": NotificationService.get_unread_user_notifications_count(self),
         }
