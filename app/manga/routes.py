@@ -199,7 +199,7 @@ def add_manga_v1():
     update_data(manga)
 
     slug = slugify(manga.name)
-    if MangaService.get_by_slug(slug) is None:
+    if MangaService.get_manga(slug=slug) is None:
         manga.slug = slug
 
     manga.add()

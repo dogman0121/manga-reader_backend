@@ -7,11 +7,12 @@ from flask_jwt_extended import (
 )
 from app import storage
 from app.user import bp
-from app.user.models import User, Avatar
+from app.user.models import User, Avatar, UserService
 from app.notifications.models import Notification
 from app.email import send_registration_verification_mail, send_password_recovery_mail
 from PIL import Image
 
+from .utils import get_current_user
 from app.utils import respond
 
 
@@ -126,8 +127,8 @@ def edit_user_v1(user_id: int):
 @bp.route('/api/v1/users/me', methods=['GET'])
 @jwt_required()
 def get_current_user_v1():
-    user = get_jwt_identity()
-    return respond(data=User.get_by_id(user).to_dict())
+    current_user = get_current_user()
+    return respond(data=current_user.to_dict(with_lists=True))
 
 @bp.route('/api/v1/users/me/affiliate', methods=['GET'])
 def affiliate_user_v1(user_id: int):

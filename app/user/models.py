@@ -36,6 +36,20 @@ class Avatar(Base):
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"), nullable=False)
     filename: Mapped[str] = mapped_column(String(64), nullable=False)
 
+class UserService:
+    def __init__(self):
+        pass
+
+    @staticmethod
+    def get_user(user_id=None, login=None, email=None):
+        if user_id:
+            return User.query.get(user_id)
+        if login:
+            return User.query.filter_by(login=login).first()
+        if email:
+            return User.query.filter_by(email=email).first()
+
+
 class User(Base):
     __tablename__ = "user"
 
@@ -205,8 +219,8 @@ class User(Base):
 
     ################################
 
-    def to_dict(self, user=None):
-        return {
+    def to_dict(self, user=None, with_lists=False):
+        data = {
             "id": self.id,
             "login": self.login,
             "email": self.email,
@@ -216,6 +230,10 @@ class User(Base):
             "avatar": storage.get_url(f"user/{self.id}/{self.avatar.filename}") if self.avatar else None,
             "about": self.about,
             "subscribers_count": self.get_subscribers_count(),
-            "lists": [l.to_dict() for l in self.lists],
             "notifications_count": NotificationService.get_unread_user_notifications_count(self),
         }
+
+        if with_lists:
+            data["lists"] = [l.to_dict() for l in self.lists]
+
+        return data

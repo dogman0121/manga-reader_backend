@@ -210,9 +210,9 @@ class MangaService:
     @staticmethod
     def get_manga(manga_id=None, slug=None):
         if manga_id:
-            return Manga.query.get(manga_id).scalar()
+            return Manga.query.get(manga_id)
         if slug:
-            return Manga.query.filter_by(slug=slug).scalar()
+            return Manga.query.filter_by(slug=slug).first()
 
 class Manga(Base):
     page_size = 20
@@ -243,7 +243,7 @@ class Manga(Base):
         back_populates="manga",
         uselist=False
     )
-    posters: Mapped[list["Poster"]] = relationship(back_populates="manga")
+    posters: Mapped[list["Poster"]] = relationship(uselist=True, back_populates="manga")
     adult: Mapped["Adult"] = relationship()
     genres: Mapped[list["Genre"]] = relationship("Genre", secondary="manga_genre")
     authors: Mapped[list["User"]] = relationship(secondary="manga_author", uselist=True)
@@ -385,8 +385,9 @@ class Manga(Base):
         if rating is not None:
             rating.delete()
 
-
     def to_dict(self, user=None, posters=False):
+        from app.lists import ListService
+
         return {
             "id": self.id,
             "name": self.name,
@@ -413,5 +414,6 @@ class Manga(Base):
             "genres": [i.to_dict() for i in self.genres],
             "user_rating": Rating.get(user.id, self.id).rating if user and Rating.get(user.id, self.id) else None,
             "translations": [i.to_dict(user=user) for i in self.translations],
+            "user_lists": [i.to_dict() for i in ListService.get_user_lists_with_manga(self, user)] if user else [],
         }
 

@@ -9,7 +9,4 @@ from PIL import Image
 from pytils.translit import slugify
 
 with app.app_context():
-    for manga in Manga.query.all():
-        manga.slug = slugify(manga.name)
-
-    db.session.commit()
+    print(db.session.execute(text("""SELECT * FROM list_manga""")).all())
