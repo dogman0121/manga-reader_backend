@@ -7,7 +7,7 @@ from pytils.translit import slugify
 
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
-from app import storage
+from app import storage, db
 
 from app.user.models import User
 from . import bp
@@ -108,7 +108,8 @@ def update_media(manga: Manga) -> None:
         if poster.uuid in posters_order:
             poster.order = posters_order.index(poster.uuid)
         else:
-            poster.delete()
+            db.session.remove(poster)
+            db.session.commit()
 
     for new_poster in new_posters:
         old_filename = new_poster.filename
