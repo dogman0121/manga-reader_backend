@@ -128,6 +128,7 @@ def update_media(manga: Manga) -> None:
 
             poster.files.append(
                 PosterFile(
+                    poster_uuid=poster_uuid,
                     uuid=identifier,
                     ext=".jpg",
                     type=name,
@@ -137,6 +138,7 @@ def update_media(manga: Manga) -> None:
         orig_uuid = save_image(source_img, source_img.size, manga.id)
         poster.files.append(
             PosterFile(
+                poster_uuid=poster_uuid,
                 uuid=orig_uuid,
                 ext=".jpg",
                 type="original",
