@@ -108,7 +108,7 @@ def update_media(manga: Manga) -> None:
         if poster.uuid in posters_order:
             poster.order = posters_order.index(poster.uuid)
         else:
-            db.session.remove(poster)
+            db.session.delete(poster)
             db.session.commit()
 
     for new_poster in new_posters:
