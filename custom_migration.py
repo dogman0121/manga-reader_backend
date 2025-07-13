@@ -9,4 +9,5 @@ from PIL import Image
 from pytils.translit import slugify
 
 with app.app_context():
-    print(db.session.execute(text("""SELECT * FROM list_manga""")).all())
+    db.session.execute(text("""DELETE FROM manga_poster WHERE manga_poster.uuid='45974b53-c93e-4c97-90fa-448cd07b0947';"""))
+    db.session.commit()

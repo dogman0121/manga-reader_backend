@@ -108,7 +108,6 @@ def update_media(manga: Manga) -> None:
         if poster.uuid in posters_order:
             poster.order = posters_order.index(poster.uuid)
         else:
-            manga.posters.remove(poster)
             poster.delete()
 
     for new_poster in new_posters:

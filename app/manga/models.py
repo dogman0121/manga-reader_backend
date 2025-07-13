@@ -120,7 +120,7 @@ class PosterFile(Base, File):
     __tablename__ = "manga_poster_file"
     uuid: Mapped[str] = mapped_column(primary_key=True)
     type: Mapped[str] = mapped_column(nullable=True)
-    poster_uuid: Mapped[str] = mapped_column(ForeignKey("manga_poster.uuid"), nullable=False)
+    poster_uuid: Mapped[str] = mapped_column(ForeignKey("manga_poster.uuid", ondelete="CASCADE"), nullable=False)
 
     poster: Mapped["Poster"] = relationship("Poster", back_populates="files")
 
