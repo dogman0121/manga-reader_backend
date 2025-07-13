@@ -213,8 +213,8 @@ def add_manga_v1():
 @bp.route("/api/v1/manga/<slug>", methods=["PUT"])
 @jwt_required()
 def edit_manga_v1(slug) -> [str, int]:
-    manga = MangaService.get_by_slug(slug)
-    user = User.get_by_id(get_jwt_identity())
+    manga = MangaService.get_manga(slug=slug)
+    user = get_current_user()
 
     if manga is None:
         return respond(error="not_found"), 404
