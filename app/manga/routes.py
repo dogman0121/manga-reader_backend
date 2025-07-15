@@ -11,7 +11,8 @@ from app import storage, db
 
 from app.user.models import User
 from . import bp
-from .models import MangaService, Manga, NameTranslation, Genre, Adult, Type, Status, Poster, Rating, PosterFile
+from .models import Manga, NameTranslation, Genre, Adult, Type, Status, Poster, Rating, PosterFile
+from .services import MangaService
 
 from flask import abort
 from app.manga.utils import get_uuid4_filename
@@ -202,6 +203,7 @@ def add_manga_v1():
     update_data(manga)
 
     slug = slugify(manga.name)
+
     if MangaService.get_manga(slug=slug) is None:
         manga.slug = slug
 

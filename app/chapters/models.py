@@ -38,7 +38,7 @@ class Chapter(Base):
 
     @staticmethod
     def get_by_chapter_number(translation_id, chapter_number):
-        return db.session.query(Chapter).filter_by(translation_id=translation_id, chapter=chapter_number).first()
+        return Chapter.query.filter_by(translation_id=translation_id, chapter=chapter_number).first()
 
     @hybrid_property
     def next(self):

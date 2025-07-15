@@ -1,5 +1,4 @@
 import json
-
 from flask import request, abort
 from flask_jwt_extended import jwt_required
 
@@ -9,14 +8,17 @@ from app import storage
 
 from . import bp
 from .models import Chapter, Page
-from app.manga.models import Manga, Translation, MangaService
+from app.manga.models import Translation
+from app.manga.services import MangaService, TranslationService
+from app.teams.models import Team
+from .services import ChapterService
+from ..user.models import UserService
 
 
-def update_data(chapter: Chapter, manga: Manga):
+def update_data(chapter: Chapter):
     name = request.form.get('name')
     tome = request.form.get('tome', type=int)
     chapter_number = request.form.get('chapter', type=int)
-    team_id = request.form.get('team', type=int)
 
     if chapter_number is None:
         abort(respond(error="bad_request", detail={"chapter": "Chapter is required"}), status_code=400)
@@ -24,32 +26,13 @@ def update_data(chapter: Chapter, manga: Manga):
     chapter.name = name
     chapter.tome = tome
     chapter.chapter = chapter_number
-    chapter.team_id = team_id
 
-    if team_id:
-        translation = Translation.get_by_team(manga_id=chapter.manga.id, team_id=team_id)
-
-        if translation is None:
-            translation = Translation(manga_id=chapter.manga.id, team_id=team_id)
-            translation.add()
-    else:
-        translation = Translation.get_by_user(manga_id=manga.id, user_id=chapter.creator_id)
-
-        if translation is None:
-            translation = Translation(manga_id=chapter.manga_id, user_id=chapter.creator_id)
-            translation.add()
-
-    chapter.translation_id = translation.id
 
 def update_media(chapter: Chapter):
     new_pages = request.files.getlist('new_page')
     pages_order = request.form.get('pages_order')
 
-    if pages_order is None:
-        pages_order = []
-    else:
-        pages_order = json.loads(pages_order)
-
+    pages_order = [] if pages_order is None else json.loads(pages_order)
 
     # update existing pages
     for page in chapter.pages:
@@ -87,25 +70,39 @@ def index():
     else:
         return respond(error="bad_request", detail={"chapter": "Chapter is required"})
 
+
 @bp.route('', methods=['POST'], strict_slashes=False)
 @jwt_required()
 def post_chapter():
-    current_user = get_current_user_or_401()
-
+    current_user = get_current_user()
     chapter = Chapter(creator_id=current_user.id, creator=current_user)
 
-    manga = MangaService.get_manga(slug=request.form.get('manga', type=str))
+    manga_slug = request.form.get('manga', type=str)
+    team_id = request.form.get('team', type=int)
+    user_id = request.form.get('user', type=int)
+
+    if manga_slug is None:
+        return respond(error="bad_request", detail={"chapter": "Manga is required"})
+
+    if team_id and user_id:
+        return respond(error="bad_request", detail={"chapter": "Team or User required"})
+
+    manga = MangaService.get_manga(slug=manga_slug)
     if manga is None:
         return respond(error="not_found", detail={"chapter": "Manga not found"}), 404
 
-    chapter.creator_id = current_user.id
+    team = Team.get(team_id)
+    user = UserService.get_user(user_id=user_id)
 
-    update_data(chapter, manga)
+    translation = TranslationService.get_or_create_translation(manga=manga, team=team, user=user)
+    chapter.translation = translation
+
+    update_data(chapter)
 
     if Chapter.get_by_chapter_number(chapter.translation_id, chapter.chapter) is not None:
         return abort(respond(error="bad_request", detail={"chapter": "Chapter already exists"}, status_code=400))
 
-    chapter.add()
+    ChapterService.create_chapter(chapter)
 
     update_media(chapter)
     chapter.update()
@@ -136,9 +133,22 @@ def delete_chapter(chapter_id):
 @jwt_required()
 def put_chapter(chapter_id):
     chapter = Chapter.get(chapter_id)
-    manga = chapter.translation.manga
+    current_user = get_current_user()
 
-    update_data(chapter, manga)
+    if chapter is None:
+        return respond(error="not_found", detail={"chapter": "Chapter not found"}), 404
+
+    update_data(chapter)
+
+    team = Team.get(request.form.get('team_id', type=int))
+    user = UserService.get_user(user_id=chapter.creator_id)
+
+    if user and current_user.id == chapter.user.id:
+        new_translation = TranslationService.get_or_create_translation(manga=chapter, user=user)
+        chapter.translation = new_translation
+    elif team and chapter.team.creator_id == current_user.id:
+        new_translation = TranslationService.get_or_create_translation(manga=chapter, team=team)
+        chapter.translation = new_translation
 
     update_media(chapter)
 

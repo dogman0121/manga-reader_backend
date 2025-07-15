@@ -1,8 +1,9 @@
 from flask_jwt_extended import jwt_required
 
 from . import bp
-from .models import ListManga, ListService, List
-from ..manga.models import MangaService
+from .models import List
+from .services import ListService
+from ..manga.services import MangaService
 from ..user.utils import get_current_user
 from ..utils import respond
 

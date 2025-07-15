@@ -170,6 +170,7 @@ class Translation(Base):
     chapters: Mapped[list["Chapter"]] = relationship(uselist=True, lazy="dynamic", back_populates="translation")
     team: Mapped["Team"] = relationship("Team")
     user: Mapped["User"] = relationship("User")
+    manga: Mapped["Manga"] = relationship("Manga", back_populates="translations")
 
     @hybrid_property
     def chapters_count(self):
@@ -204,15 +205,6 @@ class Translation(Base):
     @staticmethod
     def get_by_user(manga_id, user_id):
         return Translation.query.filter_by(manga_id=manga_id, user_id=user_id).scalar()
-
-
-class MangaService:
-    @staticmethod
-    def get_manga(manga_id=None, slug=None):
-        if manga_id:
-            return Manga.query.get(manga_id)
-        if slug:
-            return Manga.query.filter_by(slug=slug).first()
 
 class Manga(Base):
     page_size = 20
@@ -251,7 +243,7 @@ class Manga(Base):
     publishers: Mapped[list["User"]] = relationship(secondary="manga_publisher", uselist=True)
     creator: Mapped["User"] = relationship("User")
     # comments: Mapped["Comment"] = relationship("Comment", secondary="manga_comment", back_populates="manga")
-    translations: Mapped[list["Translation"]] = relationship("Translation", uselist=True)
+    translations: Mapped[list["Translation"]] = relationship("Translation", uselist=True, back_populates="manga")
 
     @staticmethod
     def get(manga_id):
