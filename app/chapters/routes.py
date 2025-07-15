@@ -17,7 +17,7 @@ def update_data(chapter: Chapter):
     tome = request.form.get('tome', type=int)
     chapter_number = request.form.get('chapter', type=int)
     team_id = request.form.get('team', type=int)
-    manga_slug = request.form.get('manga', type=int)
+    manga_slug = request.form.get('manga', type=str)
 
     if chapter_number is None:
         abort(respond(error="bad_request", detail={"chapter": "Chapter is required"}), status_code=400)
