@@ -104,8 +104,9 @@ def post_chapter():
 
     ChapterService.create_chapter(chapter)
 
-    update_media(chapter)
     chapter.update()
+
+    update_media(chapter)
 
     return respond(data=chapter.to_dict()), 200
 
