@@ -12,12 +12,11 @@ from .models import Chapter, Page
 from app.manga.models import Manga, Translation, MangaService
 
 
-def update_data(chapter: Chapter):
+def update_data(chapter: Chapter, manga: Manga):
     name = request.form.get('name')
     tome = request.form.get('tome', type=int)
     chapter_number = request.form.get('chapter', type=int)
     team_id = request.form.get('team', type=int)
-    manga_slug = request.form.get('manga', type=str)
 
     if chapter_number is None:
         abort(respond(error="bad_request", detail={"chapter": "Chapter is required"}), status_code=400)
@@ -27,23 +26,17 @@ def update_data(chapter: Chapter):
     chapter.chapter = chapter_number
     chapter.team_id = team_id
 
-    manga = MangaService.get_manga(slug=manga_slug)
-    if manga is None:
-        abort(respond(error="bad_request", detail={"manga": "Manga not found"}, status_code=400))
-
-    chapter.manga_id = manga.id
-
     if team_id:
-        translation = Translation.get_by_team(manga_id=manga.id, team_id=team_id)
+        translation = Translation.get_by_team(manga_id=chapter.manga.id, team_id=team_id)
 
         if translation is None:
-            translation = Translation(manga_id=manga.id, team_id=team_id)
+            translation = Translation(manga_id=chapter.manga.id, team_id=team_id)
             translation.add()
     else:
         translation = Translation.get_by_user(manga_id=manga.id, user_id=chapter.creator_id)
 
         if translation is None:
-            translation = Translation(manga_id=manga.id, user_id=chapter.creator_id)
+            translation = Translation(manga_id=chapter.manga_id, user_id=chapter.creator_id)
             translation.add()
 
     chapter.translation_id = translation.id
@@ -100,7 +93,14 @@ def post_chapter():
     current_user = get_current_user_or_401()
 
     chapter = Chapter(creator_id=current_user.id, creator=current_user)
-    update_data(chapter)
+
+    manga = MangaService.get_manga(slug=request.form.get('manga', type=str))
+    if manga is None:
+        return respond(error="not_found", detail={"chapter": "Manga not found"}), 404
+
+    chapter.creator_id = current_user.id
+
+    update_data(chapter, manga)
 
     if Chapter.get_by_chapter_number(chapter.translation_id, chapter.chapter) is not None:
         return abort(respond(error="bad_request", detail={"chapter": "Chapter already exists"}, status_code=400))
@@ -136,8 +136,9 @@ def delete_chapter(chapter_id):
 @jwt_required()
 def put_chapter(chapter_id):
     chapter = Chapter.get(chapter_id)
+    manga = chapter.translation.manga
 
-    update_data(chapter)
+    update_data(chapter, manga)
 
     update_media(chapter)
 
