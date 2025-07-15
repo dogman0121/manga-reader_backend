@@ -23,11 +23,11 @@ class TranslationService:
             return translation
 
         if team and manga:
-            new_translation = Translation(manga=manga, team=team)
+            new_translation = Translation(manga_id=manga.id, team_id=team.id)
             db.session.add(new_translation)
             db.session.commit()
         elif user and manga:
-            new_translation = Translation(manga=manga, user=user)
+            new_translation = Translation(manga_id=manga.id, user_id=user.id)
             db.session.add(new_translation)
             db.session.commit()
         else:
