@@ -143,10 +143,10 @@ def put_chapter(chapter_id):
     team = Team.get(request.form.get('team_id', type=int))
     user = UserService.get_user(user_id=chapter.creator_id)
 
-    if user and current_user.id == chapter.user.id:
+    if user and current_user.id == chapter.translation.user.id:
         new_translation = TranslationService.get_or_create_translation(manga=chapter, user=user)
         chapter.translation = new_translation
-    elif team and chapter.team.creator_id == current_user.id:
+    elif team and chapter.translation.team.creator_id == current_user.id:
         new_translation = TranslationService.get_or_create_translation(manga=chapter, team=team)
         chapter.translation = new_translation
 
