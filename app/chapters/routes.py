@@ -9,7 +9,7 @@ from app import storage
 
 from . import bp
 from .models import Chapter, Page
-from app.manga.models import Manga, Translation
+from app.manga.models import Manga, Translation, MangaService
 
 
 def update_data(chapter: Chapter):
@@ -17,7 +17,7 @@ def update_data(chapter: Chapter):
     tome = request.form.get('tome', type=int)
     chapter_number = request.form.get('chapter', type=int)
     team_id = request.form.get('team', type=int)
-    manga_id = request.form.get('manga', type=int)
+    manga_slug = request.form.get('manga', type=int)
 
     if chapter_number is None:
         abort(respond(error="bad_request", detail={"chapter": "Chapter is required"}), status_code=400)
@@ -27,22 +27,23 @@ def update_data(chapter: Chapter):
     chapter.chapter = chapter_number
     chapter.team_id = team_id
 
-    if Manga.get(manga_id) is None:
+    manga = MangaService.get_manga(slug=manga_slug)
+    if manga is None:
         abort(respond(error="bad_request", detail={"manga": "Manga not found"}, status_code=400))
 
-    chapter.manga_id = manga_id
+    chapter.manga_id = manga.id
 
     if team_id:
-        translation = Translation.get_by_team(manga_id=manga_id, team_id=team_id)
+        translation = Translation.get_by_team(manga_id=manga.id, team_id=team_id)
 
         if translation is None:
-            translation = Translation(manga_id=manga_id, team_id=team_id)
+            translation = Translation(manga_id=manga.id, team_id=team_id)
             translation.add()
     else:
-        translation = Translation.get_by_user(manga_id=manga_id, user_id=chapter.creator_id)
+        translation = Translation.get_by_user(manga_id=manga.id, user_id=chapter.creator_id)
 
         if translation is None:
-            translation = Translation(manga_id=manga_id, user_id=chapter.creator_id)
+            translation = Translation(manga_id=manga.id, user_id=chapter.creator_id)
             translation.add()
 
     chapter.translation_id = translation.id
