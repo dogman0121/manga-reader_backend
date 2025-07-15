@@ -133,6 +133,7 @@ def delete_chapter(chapter_id):
 @jwt_required()
 def put_chapter(chapter_id):
     chapter = Chapter.get(chapter_id)
+    manga = chapter.translation.manga
     current_user = get_current_user()
 
     if chapter is None:
@@ -144,10 +145,10 @@ def put_chapter(chapter_id):
     user = UserService.get_user(user_id=chapter.creator_id)
 
     if user and current_user.id == chapter.translation.user.id:
-        new_translation = TranslationService.get_or_create_translation(manga=chapter, user=user)
+        new_translation = TranslationService.get_or_create_translation(manga=manga, user=user)
         chapter.translation = new_translation
     elif team and chapter.translation.team.creator_id == current_user.id:
-        new_translation = TranslationService.get_or_create_translation(manga=chapter, team=team)
+        new_translation = TranslationService.get_or_create_translation(manga=manga, team=team)
         chapter.translation = new_translation
 
     update_media(chapter)
