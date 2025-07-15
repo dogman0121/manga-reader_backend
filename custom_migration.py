@@ -11,5 +11,5 @@ from pytils.translit import slugify
 with app.app_context():
     # db.session.execute(text("""DELETE FROM manga_poster WHERE manga_poster.uuid='45974b53-c93e-4c97-90fa-448cd07b0947';"""))
     # db.session.commit()
-    db.session.execute(text("""UPDATE chapter SET translation_id=2 WHERE id=17;"""))
-    db.session.commit()
+    print(db.session.execute(text("""SELECT * FROM chapter WHERE tome=1 AND chapter=1;""")).all())
+    #db.session.commit()
