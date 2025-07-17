@@ -52,7 +52,7 @@ def update_media(chapter: Chapter):
     # add new_pages
     for page in new_pages:
         try:
-            orig_filename, _ = os.path.splitext(page.filename)
+            orig_filename = page.filename
 
             order = pages_order.index(page.filename)
 
