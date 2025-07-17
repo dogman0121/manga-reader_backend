@@ -27,5 +27,6 @@ class File:
     __abstract__ = True
 
     uuid: Mapped[str] = mapped_column(nullable=False, primary_key=True)
+    orig_filename: Mapped[str] = mapped_column(nullable=True)
     ext: Mapped[str] = mapped_column(nullable=False)
     uploaded_at: Mapped[datetime] = mapped_column(nullable=False, default=lambda x: datetime.now())

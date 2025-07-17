@@ -1,4 +1,5 @@
 import json
+import os
 from flask import request, abort
 from flask_jwt_extended import jwt_required
 
@@ -51,11 +52,19 @@ def update_media(chapter: Chapter):
     # add new_pages
     for page in new_pages:
         try:
+            orig_filename, _ = os.path.splitext(page.filename)
+
             order = pages_order.index(page.filename)
 
             uuid = storage.save(page, f"chapter/{chapter.id}", ext=".webp")
 
-            page = Page(uuid=uuid, chapter_id=chapter.id, ext=".webp", order=order)
+            page = Page(
+                orig_filename=orig_filename,
+                uuid=uuid,
+                chapter_id=chapter.id,
+                ext=".webp",
+                order=order
+            )
             page.add()
         except ValueError:
             continue

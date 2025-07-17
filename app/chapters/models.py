@@ -16,7 +16,7 @@ class Page(Base, File):
     def to_dict(self):
         return {
             "uuid": self.uuid,
-            "filename": self.uuid + self.ext,
+            "filename": self.orig_filename if self.orig_filename else self.uuid + self.ext,
             "link": storage.get_url(f"chapter/{self.chapter_id}/{self.uuid}{self.ext}"),
             "order": self.order,
         }
