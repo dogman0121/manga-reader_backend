@@ -58,6 +58,8 @@ def update_media(chapter: Chapter):
 
     pages_order = [] if pages_order is None else json.loads(pages_order)
 
+    app_logger.info(f"update_media: Found {len(new_pages)} new pages of {len(pages_order)} pages")
+
     # update existing pages
     for page in chapter.pages:
         # delete unused pages
