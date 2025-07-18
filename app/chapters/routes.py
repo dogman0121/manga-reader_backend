@@ -63,12 +63,11 @@ def update_media(chapter: Chapter):
     # update existing pages
     for page in chapter.pages:
         # delete unused pages
-        page_filename = page.uuid + page.ext
-        if page_filename not in pages_order:
+        if page.uuid not in pages_order:
             delete_page(chapter, page)
             continue
 
-        new_order = pages_order.index(page_filename)
+        new_order = pages_order.index(page.uuid)
 
         page.order = new_order
         page.update()
@@ -76,7 +75,8 @@ def update_media(chapter: Chapter):
     # add new_pages
     for page in new_pages:
         try:
-            order = pages_order.index(page.filename)
+            filename, _ = os.path.splitext(page.filename)
+            order = pages_order.index(filename)
 
             save_page(chapter, page, order)
         except ValueError:
