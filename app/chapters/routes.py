@@ -54,7 +54,6 @@ def save_page(chapter, page, order):
 @log_runtime
 def update_media(chapter: Chapter):
     new_pages = request.files.getlist('new_page')
-    print(new_pages)
     pages_order = request.form.get('pages_order')
 
     pages_order = [] if pages_order is None else json.loads(pages_order)
@@ -175,7 +174,7 @@ def put_chapter(chapter_id):
         new_translation = TranslationService.get_or_create_translation(manga=manga, team=team)
         chapter.translation = new_translation
 
-    print(len(request.files.getlist('new_page')))
+    app_logger.info(f"put_chapter: Received {len(request.files.getlist('new_page'))} files")
     update_media(chapter)
 
     db.session.commit()
