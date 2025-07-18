@@ -13,6 +13,7 @@ from app.manga.models import Translation
 from app.manga.services import MangaService, TranslationService
 from app.teams.models import Team
 from .services import ChapterService
+from ..logs import log_runtime
 from ..user.models import UserService
 
 
@@ -28,7 +29,30 @@ def update_data(chapter: Chapter):
     chapter.tome = tome
     chapter.chapter = chapter_number
 
+@log_runtime
+def delete_page(chapter, page):
+    page_filename = page.uuid + page.ext
 
+    storage.delete(f"chapter/{chapter.id}/{page_filename}")
+    page.delete()
+
+@log_runtime
+def save_page(chapter, page, order):
+    orig_filename = page.filename
+
+    uuid = storage.save(page, f"chapter/{chapter.id}", ext=".webp")
+
+    page = Page(
+        orig_filename=orig_filename,
+        uuid=uuid,
+        chapter_id=chapter.id,
+        ext=".webp",
+        order=order
+    )
+    page.add()
+
+
+@log_runtime
 def update_media(chapter: Chapter):
     new_pages = request.files.getlist('new_page')
     pages_order = request.form.get('pages_order')
@@ -40,8 +64,7 @@ def update_media(chapter: Chapter):
         # delete unused pages
         page_filename = page.uuid + page.ext
         if page_filename not in pages_order:
-            storage.delete(f"chapter/{chapter.id}/{page_filename}")
-            page.delete()
+            delete_page(chapter, page)
             continue
 
         new_order = pages_order.index(page_filename)
@@ -52,20 +75,11 @@ def update_media(chapter: Chapter):
     # add new_pages
     for page in new_pages:
         try:
-            orig_filename = page.filename
-
             order = pages_order.index(page.filename)
 
-            uuid = storage.save(page, f"chapter/{chapter.id}", ext=".webp")
+            save_page(chapter, page, order)
 
-            page = Page(
-                orig_filename=orig_filename,
-                uuid=uuid,
-                chapter_id=chapter.id,
-                ext=".webp",
-                order=order
-            )
-            page.add()
+
         except ValueError:
             continue
 
