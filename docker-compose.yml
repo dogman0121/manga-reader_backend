@@ -10,3 +10,4 @@ services:
     volumes:
       - /var/storage/uploads/:/app/static/
       - /var/storage/uploads/:/var/storage/uploads/
+      - /var/logs/manga-reader/:/var/storage/manga-reader/
