@@ -42,13 +42,13 @@ def save_page(chapter, page, order):
 
     uuid = storage.save(page, f"chapter/{chapter.id}", ext=".webp")
 
-    page = Page(
+    chapter.pages.append(Page(
         orig_filename=orig_filename,
         uuid=uuid,
         chapter_id=chapter.id,
         ext=".webp",
         order=order
-    )
+    ))
 
 
 @log_runtime
