@@ -25,7 +25,6 @@ class List(db.Model):
     def saves_count(self) -> int:
         return List.query.join(ListSave).filter_by(list_id=self.id).count()
 
-
     def is_saved_by_user(self, user) -> bool:
         return ListSave.query.filter_by(list_id=self.id, creator_id=user.id).count() > 0
 
@@ -52,6 +51,9 @@ class List(db.Model):
             "description": self.description,
             "created_at": self.created_at,
             "saves_count": self.saves_count,
+            "preview": [
+                i.main_poster.get_size("small") for i in self.manga[:4]
+            ]
         }
 
         if with_manga:

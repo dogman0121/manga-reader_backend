@@ -142,6 +142,12 @@ class Poster(Base):
 
         return dct
 
+    def get_size(self, size):
+        filtered = filter(lambda x: x == size, self.files)
+        if filtered:
+            return filtered[0]
+        return None
+
     def add_file(self, file: PosterFile):
         self.files.append(file)
 
