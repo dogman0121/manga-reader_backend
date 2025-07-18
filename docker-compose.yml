@@ -8,5 +8,5 @@ services:
     env_file:
       - /home/ivan/projects/manga-reader/.env
     volumes:
-      - /var/storage/uploads/:./app/static/
-      - /var/logs/manga-reader/:./app/logs/
+      - /var/storage/uploads/:/app/static/
+      - /var/logs/manga-reader/:/app/logs/
