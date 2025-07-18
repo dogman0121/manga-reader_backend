@@ -29,14 +29,12 @@ def update_data(chapter: Chapter):
     chapter.tome = tome
     chapter.chapter = chapter_number
 
-@log_runtime
 def delete_page(chapter, page):
     page_filename = page.uuid + page.ext
 
     storage.delete(f"chapter/{chapter.id}/{page_filename}")
     page.delete()
 
-@log_runtime
 def save_page(chapter, page, order):
     orig_filename = page.filename
 
@@ -51,7 +49,6 @@ def save_page(chapter, page, order):
     ))
 
 
-@log_runtime
 def update_media(chapter: Chapter):
     new_pages = request.files.getlist('new_page')
     pages_order = request.form.get('pages_order')
