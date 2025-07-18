@@ -19,6 +19,7 @@ from app.manga.utils import get_uuid4_filename
 
 from PIL import Image
 
+from ..logs import log_runtime
 from ..user.utils import get_current_user
 from ..utils import respond
 
@@ -173,8 +174,9 @@ def update_media(manga: Manga) -> None:
 
 
 @bp.route('/api/v1/manga/<slug>', methods=['GET'])
+@log_runtime
 @jwt_required(optional=True)
-def get_manga_v1(slug):
+def get_manga(slug):
     current_user = get_current_user()
 
     manga = MangaService.get_manga(slug=slug)

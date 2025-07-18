@@ -5,6 +5,9 @@ def get_current_user():
     from .models import User
     user_id = get_jwt_identity()
 
+    if user_id is None:
+        return None
+
     user = User.get_by_id(user_id)
 
     return user
