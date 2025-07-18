@@ -6,6 +6,9 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.ext.hybrid import hybrid_property
 from datetime import datetime
 
+from app.logs import app_logger
+
+
 class List(db.Model):
     __tablename__ = 'list'
 
@@ -45,7 +48,7 @@ class List(db.Model):
         db.session.delete(save)
 
     def to_dict(self, user=None, with_manga=False, with_creator=False):
-        print([i.main_poster.get_size("small") for i in self.manga[:4]])
+        app_logger.info([i.main_poster for i in self.manga[:4]])
         data = {
             "id": self.id,
             "name": self.name,
@@ -53,7 +56,7 @@ class List(db.Model):
             "created_at": self.created_at,
             "saves_count": self.saves_count,
             "preview": [
-                i.main_poster.get_size("small") for i in self.manga[:4]
+                i.main_poster.get_size("small").get_url() for i in self.manga[:4]
             ]
         }
 

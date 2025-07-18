@@ -4,6 +4,7 @@ from sqlalchemy.ext.hybrid import hybrid_property, hybrid_method
 from typing_extensions import override
 
 from app import db, storage
+from app.logs import app_logger
 from app.models import Base, File
 from datetime import datetime
 from sqlalchemy import Integer, Text, ForeignKey, DateTime, Column, Table, String, Select, func, desc, and_
@@ -124,6 +125,10 @@ class PosterFile(Base, File):
 
     poster: Mapped["Poster"] = relationship("Poster", back_populates="files")
 
+    def get_url(self) -> str:
+        return storage.get_url(f"manga/{self.poster.manga_id}/{self.uuid}{self.ext}")
+
+
 class Poster(Base):
     __tablename__ = "manga_poster"
 
@@ -136,16 +141,16 @@ class Poster(Base):
 
     def to_dict(self):
         dct =  dict(
-            [(file.type, storage.get_url(f"manga/{self.manga_id}/{file.uuid}{file.ext}")) for file in self.files]
+            [(file.type, file.get_url()) for file in self.files]
         )
         dct["uuid"] = self.uuid
 
         return dct
 
     def get_size(self, size):
-        filtered = filter(lambda x: x == size, self.files)
-        if filtered:
-            return filtered[0]
+        for f in self.files:
+            if f.type == size:
+                return f
         return None
 
     def add_file(self, file: PosterFile):
@@ -236,11 +241,6 @@ class Manga(Base):
         cascade="save-update, merge, delete, delete-orphan")
     type: Mapped["Type"] = relationship()
     status: Mapped["Status"] = relationship()
-    main_poster: Mapped["Poster"] = relationship(
-        primaryjoin="and_(Manga.main_poster_number == Poster.order, Manga.id == Poster.manga_id)",
-        back_populates="manga",
-        uselist=False
-    )
     posters: Mapped[list["Poster"]] = relationship(uselist=True, back_populates="manga")
     adult: Mapped["Adult"] = relationship()
     genres: Mapped[list["Genre"]] = relationship("Genre", secondary="manga_genre")
@@ -276,7 +276,10 @@ class Manga(Base):
     def main_poster(self):
         return (
             db.session.query(Poster)
-            .filter(Poster.order == self.main_poster_number, Poster.manga_id == self.id).all()
+            .filter(
+                Poster.order == self.main_poster_number,
+                Poster.manga_id == self.id
+            ).scalar()
         )
 
     # ----- Filters -----
