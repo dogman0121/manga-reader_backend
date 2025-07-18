@@ -6,7 +6,8 @@ RUN pip install gunicorn
 
 COPY app app
 
-RUN mkdir /var/logs/manga-reader
+RUN mkdir "logs"
+RUN mkdir "static"
 
 COPY migrations migrations
 COPY manage.py config.py boot.sh ./
