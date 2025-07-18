@@ -45,6 +45,7 @@ class List(db.Model):
         db.session.delete(save)
 
     def to_dict(self, user=None, with_manga=False, with_creator=False):
+        print([i.main_poster.get_size("small") for i in self.manga[:4]])
         data = {
             "id": self.id,
             "name": self.name,
