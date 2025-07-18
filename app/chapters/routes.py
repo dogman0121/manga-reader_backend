@@ -5,7 +5,7 @@ from flask_jwt_extended import jwt_required
 
 from app.user.utils import get_current_user_or_401, get_current_user
 from app.utils import respond
-from app import storage
+from app import storage, db
 
 from . import bp
 from .models import Chapter, Page
@@ -13,7 +13,7 @@ from app.manga.models import Translation
 from app.manga.services import MangaService, TranslationService
 from app.teams.models import Team
 from .services import ChapterService
-from ..logs import log_runtime
+from ..logs import log_runtime, app_logger
 from ..user.models import UserService
 
 
@@ -49,7 +49,6 @@ def save_page(chapter, page, order):
         ext=".webp",
         order=order
     )
-    page.add()
 
 
 @log_runtime
@@ -78,8 +77,6 @@ def update_media(chapter: Chapter):
             order = pages_order.index(page.filename)
 
             save_page(chapter, page, order)
-
-
         except ValueError:
             continue
 
@@ -105,10 +102,10 @@ def post_chapter():
     user_id = request.form.get('user', type=int)
 
     if manga_slug is None:
-        return respond(error="bad_request", detail={"chapter": "Manga is required"})
+        return respond(error="bad_request", detail={"chapter": "Manga is required"}), 400
 
     if team_id and user_id:
-        return respond(error="bad_request", detail={"chapter": "Team or User required"})
+        return respond(error="bad_request", detail={"chapter": "Team or User required"}), 400
 
     manga = MangaService.get_manga(slug=manga_slug)
     if manga is None:
@@ -127,9 +124,9 @@ def post_chapter():
 
     ChapterService.create_chapter(chapter)
 
-    chapter.update()
-
     update_media(chapter)
+
+    db.session.commit()
 
     return respond(data=chapter.to_dict()), 200
 
@@ -154,8 +151,10 @@ def delete_chapter(chapter_id):
     return "", 204
 
 @bp.route('/<int:chapter_id>', methods=['PUT'])
+@log_runtime
 @jwt_required()
 def put_chapter(chapter_id):
+    app_logger.info("put_chapter: Request came")
     chapter = Chapter.get(chapter_id)
     manga = chapter.translation.manga
     current_user = get_current_user()
@@ -177,7 +176,9 @@ def put_chapter(chapter_id):
 
     update_media(chapter)
 
-    chapter.update()
+    db.session.commit()
+
+    app_logger.info("put_chapter: Chapter updated")
 
     return respond(data=chapter.to_dict()), 200
 
