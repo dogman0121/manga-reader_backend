@@ -9,4 +9,4 @@ services:
       - /home/ivan/projects/manga-reader/.env
     volumes:
       - /var/storage/uploads/:/app/static/
-      - /var/logs/manga-reader/:/app/logs/
+      - /var/log/manga-reader/:/app/logs/
