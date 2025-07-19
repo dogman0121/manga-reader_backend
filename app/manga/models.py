@@ -402,7 +402,7 @@ class Manga(Base):
             "saves": self.saves_count,
             "rating_count": self.rating[2],
             "name_translations": [i.to_dict() for i in self.name_translations],
-            "main_poster": self.main_poster[0].to_dict() if self.main_poster else None,
+            "main_poster": self.main_poster.to_dict() if self.main_poster else None,
             "background":
                 storage.get_url(f"manga/{self.id}/{self.background}")
                 if self.background else None,
